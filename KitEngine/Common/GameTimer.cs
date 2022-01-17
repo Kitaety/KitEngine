@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace KitEngine
+namespace KitEngine.Common
 {
     public class GameTimer
     {
