@@ -1,40 +1,50 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using KitEngine.Common;
+using SharpDX.DirectInput;
+using SharpDX.Multimedia;
+using SharpDX.RawInput;
+using Device = SharpDX.RawInput.Device;
+using DeviceFlags = SharpDX.RawInput.DeviceFlags;
 
 namespace KitEngine
 {
-    class Input
+    class Input: IDisposable
     {
         private List<int> _keysPressed = new List<int>();
 
-        protected virtual void OnMouseDown(MouseButtons button, Point location)
+        public Input()
         {
+
+            // setup the device
+            Device.RegisterDevice(UsagePage.Generic, UsageId.GenericMouse, DeviceFlags.None);
+            Device.MouseInput += (sender, args) => UpdateMouseText(args);
+
+            Device.RegisterDevice(UsagePage.Generic, UsageId.GenericKeyboard, DeviceFlags.None);
+            Device.KeyboardInput += (sender, args) => UpdateKeyboardText(args);
         }
 
-        protected virtual void OnMouseUp(MouseButtons button, Point location)
+        private void UpdateMouseText(RawInputEventArgs rawArgs)
         {
+            var args = (MouseInputEventArgs)rawArgs;
+
+            //Log.Info($"(x,y):({args.X},{args.Y}) Buttons: {args.ButtonFlags} State: {args.Mode} Wheel: {args.WheelDelta}");
         }
 
-        protected virtual void OnMouseMove(MouseButtons button, Point location)
-        {
+        private void UpdateKeyboardText(KeyboardInputEventArgs rawArgs)
+        { 
+            if (rawArgs.Key == Keys.W)
+            {
+                Log.Error("!!!Exit!!!");
+            }
+
+            Log.Info(
+                $"Key: {rawArgs.Key} State: {rawArgs.State} ScanCodeFlags: {rawArgs.ScanCodeFlags} MakeCode: {rawArgs.MakeCode}");
         }
 
-        protected virtual void OnKeyDown(Keys keyCode)
+        public void Dispose()
         {
-            _keysPressed.Add((int)keyCode);
         }
-
-        protected virtual void OnKeyUp(Keys keyCode)
-        {
-            _keysPressed.Remove((int)keyCode);
-        }
-
-        protected bool IsKeyDown(Keys keyCode) => _keysPressed.Contains((int)keyCode);
-        //protected bool IsKeyDown(Keys keyCode) => Keyboard.IsKeyDown(KeyInterop.KeyFromVirtualKey((int)keyCode));
     }
 }
