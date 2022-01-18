@@ -1,12 +1,17 @@
 ﻿using System;
+using System.Windows.Forms;
 using KitEngine.Common;
 using KitEngine.Models;
 using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
 using SharpDX.DXGI;
+using SharpDX.Mathematics.Interop;
 using SharpDX.Windows;
+using Color = System.Drawing.Color;
 using D3D11 = SharpDX.Direct3D11;
+using ShaderBytecode = SharpDX.D3DCompiler.ShaderBytecode;
+using Viewport = SharpDX.Viewport;
 
 namespace KitEngine
 {
@@ -14,8 +19,7 @@ namespace KitEngine
     {
 
         private RenderForm window;
-        private int width;
-        private int height;
+        private RenderLoop.RenderCallback renderCallback;
         ModeDescription backBufferDesc;
         private D3D11.Device device;
         private SwapChain swapChain;
@@ -43,11 +47,53 @@ namespace KitEngine
         private D3D11.InputLayout inputLayout;
         private Viewport viewport;
 
-        public Render()
+        public Render(RenderForm renderForm, RenderLoop.RenderCallback renderCallback)
         {
-
+            this.window = renderForm;
+            this.renderCallback = renderCallback;
+            
+            backBufferDesc = new ModeDescription(window.Size.Width, window.Size.Height, new Rational(60, 1), Format.R8G8B8A8_UNorm);
+            
+            InitializeDeviceResources();
+            InitializeShaders();
+            InitializeTriangle();
         }
 
+        public void Run()
+        {
+            Log.Info("Run RenderLoop");
+            RenderLoop.Run(window, RenderCallback);
+        }
+
+        public void RenderCallback()
+        {
+            renderCallback();
+            Draw();
+        }
+
+        public void Dispose()
+        {
+            inputLayout?.Dispose();
+            inputSignature?.Dispose();
+            renderTargetView?.Dispose();
+            swapChain?.Dispose();
+            device?.Dispose();
+            deviceContext?.Dispose();
+            triangleVertexBuffer?.Dispose();
+            pixelShader?.Dispose();
+            vertexShader?.Dispose();
+        }
+
+        private void Draw()
+        {
+            deviceContext.OutputMerger.SetRenderTargets(renderTargetView);
+            deviceContext.ClearRenderTargetView(renderTargetView, RGBAToRaw4(32, 103, 178));
+
+            deviceContext.InputAssembler.SetVertexBuffers(0, new D3D11.VertexBufferBinding(triangleVertexBuffer, Utilities.SizeOf<VertexPositionColor>(), 0));
+            deviceContext.Draw(vertices.Length, 0);
+
+            swapChain.Present(1, PresentFlags.None);
+        }
 
         private void InitializeDeviceResources()
         {
@@ -94,7 +140,7 @@ namespace KitEngine
 
             // Set viewport
             Log.Info("Create ViewPort");
-            viewport = new Viewport(0, 0, width, height);
+            viewport = new Viewport(0, 0, window.Size.Width, window.Size.Height);
             deviceContext.Rasterizer.SetViewport(viewport);
             Log.Success("Create ViewPort");
 
@@ -125,9 +171,11 @@ namespace KitEngine
             inputLayout = new D3D11.InputLayout(device, inputSignature, inputElements);
             deviceContext.InputAssembler.InputLayout = inputLayout;
         }
-
-        public void Dispose()
+        
+        private RawColor4 RGBAToRaw4(byte r, byte g, byte b, byte a = 255)
         {
+            const float n = 255f;
+            return new RawColor4(r / n, g / n, b / n, a / n);
         }
     }
 }
