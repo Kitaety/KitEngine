@@ -30,12 +30,26 @@ namespace KitEngine
             InitializeWindow();
             render = new Render(window, RenderCallback);
             input = new Input();
+
+            input.OnKeyPress += OnKeyPress;
         }
 
         public void Run()
         {  
             render.Run();
             //Timer.Start();
+        }
+
+        public void RenderCallback()
+        {
+            //Timer.Tick();
+            //Log.Info(GetFPS());
+        }
+
+        public void Dispose()
+        {
+            render?.Dispose();
+            window?.Dispose();
         }
 
         private void InitializeWindow()
@@ -54,29 +68,18 @@ namespace KitEngine
             Log.Success("Create Window");
         }
 
-        public void RenderCallback()
-        {
-            //Timer.Tick();
-            //Log.Info(GetFPS());
-        }
-
         private float GetFPS()
         {
             return 60/Timer.DeltaTime;
         }
 
-        private void OnKeyUp(object sender, KeyEventArgs args)
+        private void OnKeyPress(Keys key)
         {
-            if (args.KeyCode == Keys.Escape)
+            if (key == Keys.Escape)
             {
                 window.Close();
             }
         }
 
-        public void Dispose()
-        {
-            render?.Dispose();
-            window?.Dispose();
-        }
     }
 }
