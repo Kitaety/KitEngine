@@ -11,32 +11,57 @@ namespace KitEngine
 {
     class Input: IDisposable
     {
-        private List<int> _keysPressed = new List<int>();
+        private List<Keys> _keysPressed = new List<Keys>();
 
         public Input()
         {
             // setup the device
             Device.RegisterDevice(UsagePage.Generic, UsageId.GenericMouse, DeviceFlags.None);
-            Device.MouseInput += (sender, args) => UpdateMouseText(args);
+            Device.MouseInput += (sender, args) => OnMouseInput(args);
 
             Device.RegisterDevice(UsagePage.Generic, UsageId.GenericKeyboard, DeviceFlags.None);
-            Device.KeyboardInput += (sender, args) => UpdateKeyboardText(args);
+            Device.KeyboardInput += (sender, args) => OnKeyboardInput(args);
         }
 
-        private void UpdateMouseText(RawInputEventArgs rawArgs)
+        public bool IsPressed(Keys key)
+        {
+            return _keysPressed.Contains(key);
+        }
+
+        private void OnMouseInput(RawInputEventArgs rawArgs)
         {
             var args = (MouseInputEventArgs)rawArgs;
         }
 
-        private void UpdateKeyboardText(KeyboardInputEventArgs rawArgs)
+        private void OnKeyboardInput(KeyboardInputEventArgs args)
         {
-            OnKeyPress?.Invoke(rawArgs.Key);
-            Log.Info($"Key: {rawArgs.Key} State: {rawArgs.State} ScanCodeFlags: {rawArgs.ScanCodeFlags} MakeCode: {rawArgs.MakeCode}");
+            switch (args.State)
+            {
+                case KeyState.KeyDown:
+                {
+                    if (!IsPressed(args.Key))
+                    {
+                        _keysPressed.Add(args.Key);
+                        OnKeyDown?.Invoke(args.Key);
+                       Log.Info($"Key: {args.Key} State: {args.State}");
+                    }
+                    break;
+                }
+
+                case KeyState.KeyUp:
+                {
+                    _keysPressed.Remove(args.Key);
+                    OnKeyUp?.Invoke(args.Key);
+                    Log.Info($"Key: {args.Key} State: {args.State}");
+                    break;
+                }
+            }
         }
 
         public delegate void KeyboardInputHandler(Keys key);
 
-        public event KeyboardInputHandler OnKeyPress;
+        public event KeyboardInputHandler OnKeyUp;
+        public event KeyboardInputHandler OnKeyDown;
 
         public void Dispose()
         {

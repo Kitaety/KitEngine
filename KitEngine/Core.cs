@@ -31,9 +31,10 @@ namespace KitEngine
             render = new Render(window, RenderCallback);
             input = new Input();
 
-            input.OnKeyPress += OnKeyPress;
+            input.OnKeyUp += OnKeyUp;
+            input.OnKeyDown += OnKeyDown; ;
         }
-
+        
         public void Run()
         {  
             render.Run();
@@ -73,12 +74,17 @@ namespace KitEngine
             return 60/Timer.DeltaTime;
         }
 
-        private void OnKeyPress(Keys key)
+        private void OnKeyUp(Keys key)
         {
             if (key == Keys.Escape)
             {
                 window.Close();
             }
+        }
+
+        private void OnKeyDown(Keys key)
+        {
+            
         }
 
     }
