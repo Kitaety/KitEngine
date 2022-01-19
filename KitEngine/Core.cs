@@ -3,6 +3,8 @@ using System.Drawing;
 using System.Windows.Forms;
 using SharpDX.Windows;
 using KitEngine.Common;
+using KitEngine.InputSystem;
+using KitEngine.RenderSystem;
 
 namespace KitEngine
 {
@@ -15,7 +17,6 @@ namespace KitEngine
 
         protected RenderForm window;
         protected Render render;
-        protected Input input;
         private int width;
         private int height;
 
@@ -29,12 +30,12 @@ namespace KitEngine
 
             InitializeWindow();
             render = new Render(window, RenderCallback);
-            input = new Input();
 
-            input.OnKeyUp += OnKeyUp;
-            input.OnKeyDown += OnKeyDown; ;
+            Input.Instance.KeyUp += OnKeyUp;
+            Input.Instance.KeyDown += OnKeyDown;
+            Input.Instance.MouseMove += OnMouseMove; ;
         }
-        
+
         public void Run()
         {  
             render.Run();
@@ -80,12 +81,17 @@ namespace KitEngine
             {
                 window.Close();
             }
+            Log.Info($"On Up {key}");
         }
 
         private void OnKeyDown(Keys key)
-        {
-            
+        { 
+            Log.Info($"On Down {key}");
         }
 
+        private void OnMouseMove(MouseMoveEventArgs args)
+        {
+            Log.Info($"Mouse Move V:{args.Vertical} H:{args.Horizontal}");
+        }
     }
 }

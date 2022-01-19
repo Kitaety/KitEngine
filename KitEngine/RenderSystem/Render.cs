@@ -8,12 +8,10 @@ using SharpDX.Direct3D;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
 using SharpDX.Windows;
-using Color = System.Drawing.Color;
 using D3D11 = SharpDX.Direct3D11;
-using ShaderBytecode = SharpDX.D3DCompiler.ShaderBytecode;
 using Viewport = SharpDX.Viewport;
 
-namespace KitEngine
+namespace KitEngine.RenderSystem
 {
     class Render: IDisposable
     {

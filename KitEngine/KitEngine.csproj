@@ -74,8 +74,9 @@
   <ItemGroup>
     <Compile Include="Core.cs" />
     <Compile Include="Common\GameTimer.cs" />
-    <Compile Include="Input.cs" />
+    <Compile Include="InputSystem\Input.cs" />
     <Compile Include="Common\Log.cs" />
+    <Compile Include="InputSystem\MouseMoveEventArgs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Render.cs" />
@@ -92,6 +93,9 @@
     <Content Include="Shaders\vertexShader.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Constants\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
