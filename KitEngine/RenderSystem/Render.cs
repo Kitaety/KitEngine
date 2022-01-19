@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using KitEngine.Common;
+using KitEngine.Common.Constants;
 using KitEngine.Models;
 using SharpDX;
 using SharpDX.D3DCompiler;
@@ -27,11 +28,23 @@ namespace KitEngine.RenderSystem
         private D3D11.RenderTargetView renderTargetView;
         private VertexPositionColor[] vertices = new VertexPositionColor[]
         {
-            new VertexPositionColor(new Vector3(-0.5f, -0.5f, 0.0f), SharpDX.Color.Red),
-            new VertexPositionColor(new Vector3(0.0f, 0.5f, 0.0f), SharpDX.Color.Green),
-            new VertexPositionColor(new Vector3(0.5f, -0.5f, 0.0f), SharpDX.Color.Blue)
+            new VertexPositionColor(new Vector3(-1f, -1f, 5f), SharpDX.Color.Red),
+            new VertexPositionColor(new Vector3(1f, 1f, 5f), SharpDX.Color.Green),
+            new VertexPositionColor(new Vector3(1f, -1f, 5f), SharpDX.Color.Blue),
+            new VertexPositionColor(new Vector3(-1f, 1f, 5f), SharpDX.Color.Yellow),
+            new VertexPositionColor(new Vector3(-1f, -1f, 6f), SharpDX.Color.Red),
+            new VertexPositionColor(new Vector3(1f, 1f, 6f), SharpDX.Color.Green),
+            new VertexPositionColor(new Vector3(1f, -1f, 6f), SharpDX.Color.Blue),
+            new VertexPositionColor(new Vector3(-1f, 1f, 6f), SharpDX.Color.Yellow),
         };
-        private D3D11.Buffer triangleVertexBuffer;
+        private D3D11.Buffer vertexBuffer;
+        private D3D11.Buffer indexBuffer;
+
+
+        private int[] indices = new int[]
+        {
+            0,1,2, 0,3,1,
+        };
 
         private D3D11.VertexShader vertexShader;
         private D3D11.PixelShader pixelShader;
@@ -39,7 +52,7 @@ namespace KitEngine.RenderSystem
         private D3D11.InputElement[] inputElements = new D3D11.InputElement[]
         {
             new D3D11.InputElement("POSITION", 0, Format.R32G32B32_Float, 0, 0, D3D11.InputClassification.PerVertexData, 0),
-            new D3D11.InputElement("COLOR", 0, Format.R32G32B32A32_Float, 12, 0, D3D11.InputClassification.PerVertexData, 0)
+            new D3D11.InputElement("COLOR", 0, Format.R32G32B32A32_Float, 12, 0, D3D11.InputClassification.PerVertexData, 0),
         };
         private ShaderSignature inputSignature;
         private D3D11.InputLayout inputLayout;
@@ -54,7 +67,7 @@ namespace KitEngine.RenderSystem
             
             InitializeDeviceResources();
             InitializeShaders();
-            InitializeTriangle();
+            InitializeBuffers();
         }
 
         public void Run()
@@ -77,7 +90,8 @@ namespace KitEngine.RenderSystem
             swapChain?.Dispose();
             device?.Dispose();
             deviceContext?.Dispose();
-            triangleVertexBuffer?.Dispose();
+            vertexBuffer?.Dispose();
+            indexBuffer?.Dispose();
             pixelShader?.Dispose();
             vertexShader?.Dispose();
         }
@@ -87,8 +101,10 @@ namespace KitEngine.RenderSystem
             deviceContext.OutputMerger.SetRenderTargets(renderTargetView);
             deviceContext.ClearRenderTargetView(renderTargetView, RGBAToRaw4(32, 103, 178));
 
-            deviceContext.InputAssembler.SetVertexBuffers(0, new D3D11.VertexBufferBinding(triangleVertexBuffer, Utilities.SizeOf<VertexPositionColor>(), 0));
-            deviceContext.Draw(vertices.Length, 0);
+            deviceContext.InputAssembler.SetVertexBuffers(0, new D3D11.VertexBufferBinding(vertexBuffer, Utilities.SizeOf<VertexPositionColor>(), 0));
+            deviceContext.InputAssembler.SetIndexBuffer(indexBuffer, Format.R32_UInt, 0);
+            
+            deviceContext.DrawIndexed(indices.Length, 0,0);
 
             swapChain.Present(1, PresentFlags.None);
         }
@@ -144,18 +160,19 @@ namespace KitEngine.RenderSystem
 
             Log.Success("Create Device Resources");
         }
-        private void InitializeTriangle()
+        private void InitializeBuffers()
         {
-            triangleVertexBuffer = D3D11.Buffer.Create<VertexPositionColor>(device, D3D11.BindFlags.VertexBuffer, vertices);
+            vertexBuffer = D3D11.Buffer.Create<VertexPositionColor>(device, D3D11.BindFlags.VertexBuffer, vertices);
+            indexBuffer = D3D11.Buffer.Create<int>(device, D3D11.BindFlags.IndexBuffer, indices);
         }
         private void InitializeShaders()
         {
-            using (var vertexShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/vertexShader.hlsl", "main", "vs_4_0", ShaderFlags.Debug))
+            using (var vertexShaderByteCode = ShaderBytecode.CompileFromFile(Path.ShadersFolderPath + "vertexShader.hlsl", "main", "vs_4_0", ShaderFlags.Debug))
             {
                 inputSignature = ShaderSignature.GetInputSignature(vertexShaderByteCode);
                 vertexShader = new D3D11.VertexShader(device, vertexShaderByteCode);
             }
-            using (var pixelShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/pixelShader.hlsl", "main", "ps_4_0", ShaderFlags.Debug))
+            using (var pixelShaderByteCode = ShaderBytecode.CompileFromFile(Path.ShadersFolderPath + "pixelShader.hlsl", "main", "ps_4_0", ShaderFlags.Debug))
             {
                 pixelShader = new D3D11.PixelShader(device, pixelShaderByteCode);
             }
@@ -163,7 +180,6 @@ namespace KitEngine.RenderSystem
             // Set as current vertex and pixel shaders
             deviceContext.VertexShader.Set(vertexShader);
             deviceContext.PixelShader.Set(pixelShader);
-
             deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
 
             inputLayout = new D3D11.InputLayout(device, inputSignature, inputElements);

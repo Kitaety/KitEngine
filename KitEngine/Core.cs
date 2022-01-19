@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using SharpDX.Windows;
 using KitEngine.Common;
 using KitEngine.InputSystem;
+using KitEngine.Models;
 using KitEngine.RenderSystem;
 
 namespace KitEngine
@@ -20,6 +21,8 @@ namespace KitEngine
         private int width;
         private int height;
 
+        private Voxel Voxel;
+
         public Core()
         {
             Log.Info("Start Application");
@@ -33,7 +36,9 @@ namespace KitEngine
 
             Input.Instance.KeyUp += OnKeyUp;
             Input.Instance.KeyDown += OnKeyDown;
-            Input.Instance.MouseMove += OnMouseMove; ;
+            Input.Instance.MouseMove += OnMouseMove;
+
+            Voxel = CreateVoxel();
         }
 
         public void Run()
@@ -68,6 +73,18 @@ namespace KitEngine
             window.StartPosition = FormStartPosition.CenterScreen;
             
             Log.Success("Create Window");
+        }
+
+        private Voxel CreateVoxel()
+        {
+            Transform transform = new Transform();
+            transform.Position = new SharpDX.Vector3(0, 0, 3);
+            transform.Rotation = new SharpDX.Vector3(0, 0, 0);
+            transform.Scale = new SharpDX.Vector3(1, 1, 1);
+
+            Voxel voxel = new Voxel();
+            voxel.Transform = transform;
+            return voxel;
         }
 
         private float GetFPS()
