@@ -32,6 +32,7 @@ namespace KitEngine.RenderSystem
             new VertexPositionColor(new Vector3(1f, 1f, 5f), SharpDX.Color.Green),
             new VertexPositionColor(new Vector3(1f, -1f, 5f), SharpDX.Color.Blue),
             new VertexPositionColor(new Vector3(-1f, 1f, 5f), SharpDX.Color.Yellow),
+
             new VertexPositionColor(new Vector3(-1f, -1f, 6f), SharpDX.Color.Red),
             new VertexPositionColor(new Vector3(1f, 1f, 6f), SharpDX.Color.Green),
             new VertexPositionColor(new Vector3(1f, -1f, 6f), SharpDX.Color.Blue),
@@ -39,11 +40,16 @@ namespace KitEngine.RenderSystem
         };
         private D3D11.Buffer vertexBuffer;
         private D3D11.Buffer indexBuffer;
-
+        private D3D11.Buffer constantBuffer;
 
         private int[] indices = new int[]
         {
-            0,1,2, 0,3,1,
+            0,1,2, 0,3,1, //front
+            4,5,6, 4,7,5, //back
+            3,5,1, 3,7,5, //top
+            0,6,2, 0,4,6, //bottom
+            0,7,4, 0,3,7, //left
+            2,5,6, 2,1,5, //right
         };
 
         private D3D11.VertexShader vertexShader;
@@ -98,12 +104,14 @@ namespace KitEngine.RenderSystem
 
         private void Draw()
         {
+            Matrix view = Matrix.LookAtLH(new Vector3(0, 0, -5), new Vector3(0, 0, 0), Vector3.UnitY);
+            Matrix proj = Matrix.Identity;
+
             deviceContext.OutputMerger.SetRenderTargets(renderTargetView);
             deviceContext.ClearRenderTargetView(renderTargetView, RGBAToRaw4(32, 103, 178));
 
             deviceContext.InputAssembler.SetVertexBuffers(0, new D3D11.VertexBufferBinding(vertexBuffer, Utilities.SizeOf<VertexPositionColor>(), 0));
             deviceContext.InputAssembler.SetIndexBuffer(indexBuffer, Format.R32_UInt, 0);
-            
             deviceContext.DrawIndexed(indices.Length, 0,0);
 
             swapChain.Present(1, PresentFlags.None);
@@ -122,16 +130,6 @@ namespace KitEngine.RenderSystem
             Log.Info($"Usage {adapter.Description.Description}");
             device = new D3D11.Device(adapter, D3D11.DeviceCreationFlags.None);
             Log.Success("Create Device");
-
-            //Describe and create the command queue.
-            //Хз чего не работает, возможно неподдерживается на моем ноуте.
-            //TODO: Проверить на ноуте Риты
-            //Log.Info("Create Command Queue");
-            //D3D12.CommandQueueDescription commandQueueDescription = new D3D12.CommandQueueDescription();
-            //commandQueueDescription.Flags = D3D12.CommandQueueFlags.None;
-            //commandQueueDescription.Type = D3D12.CommandListType.Direct;
-            //commandQueue = device.CreateCommandQueue(commandQueueDescription);
-            //Log.Success("Create Command Queue");
 
             //Describe and create the swap chain.
             Log.Info("Create Swap Chain");
@@ -162,22 +160,25 @@ namespace KitEngine.RenderSystem
         }
         private void InitializeBuffers()
         {
+            constantBuffer = new D3D11.Buffer(device, Utilities.SizeOf<Matrix>(), D3D11.ResourceUsage.Default, D3D11.BindFlags.ConstantBuffer,
+                D3D11.CpuAccessFlags.None, D3D11.ResourceOptionFlags.None, 0);
             vertexBuffer = D3D11.Buffer.Create<VertexPositionColor>(device, D3D11.BindFlags.VertexBuffer, vertices);
             indexBuffer = D3D11.Buffer.Create<int>(device, D3D11.BindFlags.IndexBuffer, indices);
         }
         private void InitializeShaders()
         {
-            using (var vertexShaderByteCode = ShaderBytecode.CompileFromFile(Path.ShadersFolderPath + "vertexShader.hlsl", "main", "vs_4_0", ShaderFlags.Debug))
+            using (var vertexShaderByteCode = ShaderBytecode.CompileFromFile(Path.ShadersFolderPath + "cube.fx", "VS", "vs_4_0", ShaderFlags.Debug))
             {
                 inputSignature = ShaderSignature.GetInputSignature(vertexShaderByteCode);
                 vertexShader = new D3D11.VertexShader(device, vertexShaderByteCode);
             }
-            using (var pixelShaderByteCode = ShaderBytecode.CompileFromFile(Path.ShadersFolderPath + "pixelShader.hlsl", "main", "ps_4_0", ShaderFlags.Debug))
+            using (var pixelShaderByteCode = ShaderBytecode.CompileFromFile(Path.ShadersFolderPath + "cube.fx", "PS", "ps_4_0", ShaderFlags.Debug))
             {
                 pixelShader = new D3D11.PixelShader(device, pixelShaderByteCode);
             }
 
             // Set as current vertex and pixel shaders
+            deviceContext.VertexShader.SetConstantBuffer(0, constantBuffer);
             deviceContext.VertexShader.Set(vertexShader);
             deviceContext.PixelShader.Set(pixelShader);
             deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
