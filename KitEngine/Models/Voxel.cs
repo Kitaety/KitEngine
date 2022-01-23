@@ -9,25 +9,43 @@ namespace KitEngine.Models
 {
     public class Voxel
     {
-        public Transform Transform;
 
-        public Vector3[] Mesh = new Vector3[]
+        public Voxel(Vector3 position, SharpDX.Color color)
         {
-            new Vector3(-1f, -1f, 0.5f),
-            new Vector3(1f, 1f, 0.5f),
-            new Vector3(1f, -1f, 0.5f),
-            new Vector3(-1f, 1f, 0.5f),
-            new Vector3(-1f, -1f, -1f),
-            new Vector3(1f, 1f, -0.5f),
-            new Vector3(1f, -1f, -0.5f),
-            new Vector3(-1f, 1f, -0.5f)
+            _position = position;
+            Color = color;
+
+            for (int i = 0; i < Vertices.Length; i++)
+            {
+                Vertices[i].Color = Color;
+            }
+        }
+        
+        public readonly VertexPositionColor[] Vertices = new VertexPositionColor[]
+        {
+            new VertexPositionColor(new Vector4(-1f, -1f, -1f, 1f), SharpDX.Color.White),//front
+            new VertexPositionColor(new Vector4(-1f, 1f, -1f, 1f), SharpDX.Color.White),
+            new VertexPositionColor(new Vector4(1f, 1f, -1f, 1f), SharpDX.Color.White),
+            new VertexPositionColor(new Vector4(1f, -1f, -1f, 1f), SharpDX.Color.White),
+
+            new VertexPositionColor(new Vector4(-1f, -1f, 1f, 1f), SharpDX.Color.White),//back
+            new VertexPositionColor(new Vector4(1f, 1f, 1f, 1f), SharpDX.Color.White),
+            new VertexPositionColor(new Vector4(-1f, 1f, 1f, 1f), SharpDX.Color.White),
+            new VertexPositionColor(new Vector4(1f, -1f, 1f, 1f), SharpDX.Color.White),
         };
 
-        public readonly int[] Indices = new int[]
+        public SharpDX.Color Color;
+
+        public readonly int[] VertexIndices = new int[]
         {
-            0, 1, 2, 0, 3, 1,
+            0,1,2, 0,2,3, //front
+            4,5,6, 4,7,5, //back
+            3,2,5, 3,5,7, //right
+            0,6,1, 0,4,6, //left
+            0,7,4, 0,3,7, //bottom
+            1,6,5, 2,1,5, //top
         };
 
-        public Color Color = Color.Red;
+        private Vector3 _position;
     }
 }

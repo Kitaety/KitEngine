@@ -8,6 +8,6 @@ namespace KitEngine.Common.Constants
 {
     class Path
     {
-        public const string ShadersFolderPath = "Shaders/";
+        public const string ShadersFolderPath = @"Shaders\";
     }
 }

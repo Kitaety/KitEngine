@@ -6,6 +6,8 @@ using KitEngine.Common;
 using KitEngine.InputSystem;
 using KitEngine.Models;
 using KitEngine.RenderSystem;
+using SharpDX;
+using Color = SharpDX.Color;
 
 namespace KitEngine
 {
@@ -27,7 +29,6 @@ namespace KitEngine
         {
             Log.Info("Start Application");
 
-            //setup properties
             width = 640;
             height = 640;
 
@@ -44,13 +45,12 @@ namespace KitEngine
         public void Run()
         {  
             render.Run();
-            //Timer.Start();
         }
 
         public void RenderCallback()
         {
-            //Timer.Tick();
-            //Log.Info(GetFPS());
+            render.SetVertecies(Voxel.Vertices);
+            render.SetIndeces(Voxel.VertexIndices);
         }
 
         public void Dispose()
@@ -67,7 +67,6 @@ namespace KitEngine
             window.ClientSize = new Size(width, height);
             window.MinimumSize = new Size(200, 200);
             window.IsFullscreen = false;
-            window.AllowUserResizing = false;
             window.Text = "3D11 Sample";
             window.Name = "MainWindow";
             window.StartPosition = FormStartPosition.CenterScreen;
@@ -77,13 +76,7 @@ namespace KitEngine
 
         private Voxel CreateVoxel()
         {
-            Transform transform = new Transform();
-            transform.Position = new SharpDX.Vector3(0, 0, 3);
-            transform.Rotation = new SharpDX.Vector3(0, 0, 0);
-            transform.Scale = new SharpDX.Vector3(1, 1, 1);
-
-            Voxel voxel = new Voxel();
-            voxel.Transform = transform;
+            Voxel voxel = new Voxel(new Vector3(0,0,0), Color.Blue);
             return voxel;
         }
 
@@ -102,7 +95,7 @@ namespace KitEngine
         }
 
         private void OnKeyDown(Keys key)
-        { 
+        {
             Log.Info($"On Down {key}");
         }
 
