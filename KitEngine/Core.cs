@@ -24,7 +24,7 @@ namespace KitEngine
         private int height;
 
         private Voxel Voxel;
-
+        private Camera Camera;
         public Core()
         {
             Log.Info("Start Application");
@@ -39,7 +39,9 @@ namespace KitEngine
             Input.Instance.KeyDown += OnKeyDown;
             Input.Instance.MouseMove += OnMouseMove;
 
-            Voxel = CreateVoxel();
+            Voxel = new Voxel(new Vector3(0, 0, 0), Color.Blue);
+            Camera = new Camera(new Vector3(0, 0, -15), new Vector3(0f, 0f, 0f));
+            render.SetCamera(Camera);
         }
 
         public void Run()
@@ -74,12 +76,6 @@ namespace KitEngine
             Log.Success("Create Window");
         }
 
-        private Voxel CreateVoxel()
-        {
-            Voxel voxel = new Voxel(new Vector3(0,0,0), Color.Blue);
-            return voxel;
-        }
-
         private float GetFPS()
         {
             return 60/Timer.DeltaTime;
@@ -92,6 +88,36 @@ namespace KitEngine
                 window.Close();
             }
             Log.Info($"On Up {key}");
+            
+            switch (key)
+            {
+                case Keys.Escape:
+                {
+                    window.Close();
+                    break;
+                }
+
+                case Keys.A:
+                {
+                    Camera.Position.X -= 0.1f;
+                    break;
+                }
+                case Keys.W:
+                {
+                    Camera.Position.Z += 0.1f;
+                    break;
+                }
+                case Keys.S:
+                {
+                    Camera.Position.Z -= 0.1f;
+                    break;
+                }
+                case Keys.D:
+                {
+                    Camera.Position.X += 0.1f;
+                    break;
+                }
+            }
         }
 
         private void OnKeyDown(Keys key)
@@ -101,6 +127,8 @@ namespace KitEngine
 
         private void OnMouseMove(MouseMoveEventArgs args)
         {
+            Camera.Rotation.X += args.Vertical * 0.01f;
+            Camera.Rotation.Y += args.Horizontal * 0.01f;
             Log.Info($"Mouse Move V:{args.Vertical} H:{args.Horizontal}");
         }
     }

@@ -78,6 +78,7 @@
     <Compile Include="InputSystem\Input.cs" />
     <Compile Include="Common\Log.cs" />
     <Compile Include="InputSystem\MouseMoveEventArgs.cs" />
+    <Compile Include="Models\Camera.cs" />
     <Compile Include="Models\Voxel.cs" />
     <Compile Include="Models\Transform.cs" />
     <Compile Include="Program.cs" />

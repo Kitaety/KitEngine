@@ -58,6 +58,8 @@ namespace KitEngine.RenderSystem
         Matrix proj = Matrix.Identity;
 
         private Stopwatch clock = new Stopwatch();
+        private Camera camera;
+
         public Render(RenderForm renderForm, RenderLoop.RenderCallback renderCallback)
         {
             this.window = renderForm;
@@ -167,6 +169,8 @@ namespace KitEngine.RenderSystem
         private void Draw()
         {
             var time = clock.ElapsedMilliseconds / 1000.0f;
+
+            view = Matrix.LookAtLH(camera.Position, camera.Target, Vector3.UnitY);
             viewProj = Matrix.Multiply(view, proj);
 
             //// Clear views
@@ -178,7 +182,7 @@ namespace KitEngine.RenderSystem
             deviceContext.InputAssembler.SetIndexBuffer(indexBuffer, Format.R32_UInt, 0);
 
             // Update WorldViewProj Matrix
-            var worldViewProj = Matrix.RotationX(time) * Matrix.RotationY(time * 2) * Matrix.RotationZ(time * .7f) * viewProj;
+            var worldViewProj = viewProj;
             //var worldViewProj = Matrix.RotationX(0.002f) * viewProj;
             worldViewProj.Transpose();
             deviceContext.UpdateSubresource(ref worldViewProj, constantBuffer);
@@ -261,6 +265,11 @@ namespace KitEngine.RenderSystem
         {
             indices = voxelVertexIndices;
             UpdateIndexBuffer();
+        }
+
+        public void SetCamera(Camera camera)
+        {
+            this.camera = camera;
         }
 
         private void UpdateVertexBuffer()
