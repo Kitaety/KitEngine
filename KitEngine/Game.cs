@@ -23,6 +23,10 @@ namespace KitEngine
         {
             base.OnLoad();
             GL.ClearColor(Color4.Black);
+            // GL.Enable(EnableCap.CullFace);
+            // GL.CullFace(CullFaceMode.Back);
+            GL.PolygonMode(MaterialFace.Front, PolygonMode.Fill);
+            GL.PolygonMode(MaterialFace.Back, PolygonMode.Line);
         }
 
         protected override void OnUnload()
@@ -43,6 +47,9 @@ namespace KitEngine
             base.OnRenderFrame(e);
          
             GL.Clear(ClearBufferMask.ColorBufferBit);
+
+
+            GL.Rotate(0.5f, 0.0f, 1.0f, 0.0f);
 
             GL.Begin(PrimitiveType.QuadStrip);
 

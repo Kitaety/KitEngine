@@ -20,7 +20,7 @@ var nativeWindowSettings = new NativeWindowSettings()
 var gameWindowSettings = GameWindowSettings.Default;
 
 
-using (Game game = new Game(gameWindowSettings, nativeWindowSettings))
+using (Game game = new Game(gameWindowSettings, nativeWindowSettings, VSyncMode.On))
 {
     game.Run();
 }
