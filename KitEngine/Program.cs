@@ -9,8 +9,8 @@ var nativeWindowSettings = new NativeWindowSettings()
     WindowState = WindowState.Normal,
     Title = "KitEngine",
 
-    Flags = ContextFlags.Default,
-    Profile = ContextProfile.Compatability,
+    Flags = ContextFlags.ForwardCompatible,
+    Profile = ContextProfile.Core,
     APIVersion = new Version(4, 6),
     API = ContextAPI.OpenGL,
 
@@ -20,7 +20,5 @@ var nativeWindowSettings = new NativeWindowSettings()
 var gameWindowSettings = GameWindowSettings.Default;
 
 
-using (Game game = new Game(gameWindowSettings, nativeWindowSettings, VSyncMode.On))
-{
-    game.Run();
-}
+using Game game = new Game(gameWindowSettings, nativeWindowSettings, VSyncMode.On);
+game.Run();

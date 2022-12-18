@@ -11,4 +11,13 @@
     <PackageReference Include="OpenTK" Version="4.7.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Shaders\base_shader.frag">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Shaders\base_shader.vert">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
