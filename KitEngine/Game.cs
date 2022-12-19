@@ -1,4 +1,5 @@
-﻿using OpenTK.Windowing.Common;
+﻿using System.Collections;
+using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Graphics.OpenGL4;
@@ -10,24 +11,25 @@ namespace KitEngine
     {
         private double _frameTime = 0.0f;
         private float _fps = 0.0f;
-        
+
         private float[] _vertices = new float[]
         {
             0.5f, 0.0f, 0.0f,
-            0.5f, 0.5f, 0.0f,
-            0.0f, 0.0f, 0.0f,
-            0.0f, 0.5f, 0.0f,
-            -0.5f, 0.0f, 0.0f,
-            -0.5f, 0.5f, 0.0f
-        };
-
-        private float[] _colors = new float[]
-        {
             1.0f, 0.0f, 0.0f, 1.0f,
+
+            0.5f, 0.5f, 0.0f,
             0.0f, 0.0f, 1.0f, 1.0f,
+
+            0.0f, 0.0f, 0.0f,
             0.0f, 1.0f, 0.0f, 1.0f,
+            
+            0.0f, 0.5f, 0.0f,
             1.0f, 1.0f, 0.0f, 1.0f,
+
+            -0.5f, 0.0f, 0.0f,
             1.0f, 0.75f, 0.80f, 1.0f,
+
+            -0.5f, 0.5f, 0.0f,
             1.0f, 0.65f, 0.0f, 1.0f
         };
 
@@ -53,8 +55,8 @@ namespace KitEngine
             GL.PolygonMode(MaterialFace.Front, PolygonMode.Fill);
             GL.PolygonMode(MaterialFace.Back, PolygonMode.Line);
 
-            _indexVAO = CreateVAOShaders();
             _shaderProgram = new ShaderProgram(@"Shaders\base_shader.vert", @"Shaders\base_shader.frag");
+            _indexVAO = CreateVAOShaders();
         }
 
         protected override void OnUnload()
@@ -90,22 +92,23 @@ namespace KitEngine
             GL.BindVertexArray(vao);
 
             int vboVertex = CreateVBO(_vertices);
-            int vboColor = CreateVBO(_colors);
 
-            int vertexArray = 0;
+            int vertexArray = _shaderProgram.GetAttribProgram("aPosition");
+            int colorArray = _shaderProgram.GetAttribProgram("aColor");
 
             GL.EnableVertexAttribArray(vertexArray);
-
+            GL.EnableVertexAttribArray(colorArray);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, vboVertex);
-            GL.VertexAttribPointer(vertexArray, 3, VertexAttribPointerType.Float, true, 3 * sizeof(float), 0);
-            // GL.BindBuffer(BufferTarget.ArrayBuffer, vboColor);
-            // GL.VertexAttribPointer(4, ColorPointerType.Float, 0, 0);
+            GL.VertexAttribPointer(vertexArray, 3, VertexAttribPointerType.Float, true, 7 * sizeof(float), 0);
+            GL.VertexAttribPointer(colorArray, 4, VertexAttribPointerType.Float, true, 7 * sizeof(float), 3 * sizeof(float));
+
 
             GL.BindVertexArray(0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            
+
             GL.DisableVertexAttribArray(vertexArray);
+            GL.DisableVertexAttribArray(colorArray);
 
             return vao;
         }
@@ -113,10 +116,11 @@ namespace KitEngine
         private void DrawVAOShaders()
         {
             _shaderProgram.ActivateProgram();
+
             GL.BindVertexArray(_indexVAO);
-            GL.DrawArrays(PrimitiveType.TriangleStrip, 0, _vertices.Length / 3);
+            GL.DrawArrays(PrimitiveType.TriangleStrip, 0, _vertices.Length / 7);
+            
             _shaderProgram.DeactivateProgram();
-            GL.BindVertexArray(0);
         }
 
         private void DeleteVAOShaders()

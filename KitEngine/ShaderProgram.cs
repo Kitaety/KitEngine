@@ -34,6 +34,8 @@ namespace KitEngine
 
         public void DeleteProgram() => GL.DeleteProgram(_program);
 
+        public int GetAttribProgram(string name) => GL.GetAttribLocation(_program, name);
+
         private int CreateShader(ShaderType type, string filePath)
         {
             string shaderStr = File.ReadAllText(filePath);
