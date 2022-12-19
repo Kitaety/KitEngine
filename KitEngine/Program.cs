@@ -13,7 +13,7 @@ var nativeWindowSettings = new NativeWindowSettings()
     Profile = ContextProfile.Core,
     APIVersion = new Version(4, 6),
     API = ContextAPI.OpenGL,
-
+    
     NumberOfSamples = 0,
 };
 

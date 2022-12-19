@@ -1,11 +1,13 @@
 ﻿#version 460 core
 
-in vec3 aPosition;
+in vec4 aPosition;
 in vec4 aColor;
 out vec4 inColorFrag;
+
+layout (location = 20) uniform  mat4 modelView;
 
 void main()
 {
     inColorFrag = aColor;
-    gl_Position = vec4(aPosition, 1.0);
+    gl_Position = modelView * aPosition;
 }
