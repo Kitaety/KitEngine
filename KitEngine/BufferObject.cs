@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace KitEngine
 {
-    internal sealed class BufferObject: IDisposable
+    public sealed class BufferObject: IDisposable
     {
         private const int ErrorCode = -1;
         public int Id { private set; get; }

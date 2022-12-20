@@ -2,7 +2,7 @@
 
 namespace KitEngine
 {
-    internal class ArrayObject: IDisposable
+    public class ArrayObject: IDisposable
     {
         private const int ErrorCode = -1;
         public int Id { private set; get; }

@@ -2,7 +2,7 @@
 
 namespace KitEngine
 {
-    internal class ShaderProgram
+    public class ShaderProgram
     {
         private readonly int _program = 0;
 
