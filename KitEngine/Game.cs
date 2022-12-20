@@ -49,6 +49,7 @@ namespace KitEngine
             ShaderProgram.DeleteProgram();
         }
 
+
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
