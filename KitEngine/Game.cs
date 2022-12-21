@@ -13,18 +13,23 @@ namespace KitEngine
 
         private double _frameTime = 0.0f;
         private float _fps = 0.0f;
+        private float _deltaTime = 0.0f;
+        private bool _firstMove = true;
+        private Vector2 _lastPos;
 
         public ShaderProgram ShaderProgram { private set; get; }
         private Voxel _voxel;
         private Voxel _voxel1;
         private Voxel _voxel2;
+        private Camera _camera;
+
 
 
         public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings, VSyncMode vSyncMode = VSyncMode.Off) : base(
             gameWindowSettings, nativeWindowSettings)
         {
             VSync = vSyncMode;
-            CursorState = CursorState.Hidden;
+            CursorState = CursorState.Grabbed;
             Game.Instance = this;
         }
         
@@ -37,9 +42,11 @@ namespace KitEngine
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
             ShaderProgram = new ShaderProgram(@"Shaders\base_shader.vert", @"Shaders\base_shader.frag");
-            _voxel = new Voxel(new Vector3(1.5f, 0.0f, -7.0f), new[] { 1.0f, 0.0f, 0.0f, 1.0f });
-            _voxel1 = new Voxel(new Vector3(0.0f, 0.0f, -7.0f), new[] { 0.0f, 1.0f, 0.0f, 1.0f });
+            _voxel = new Voxel(new Vector3(1.5f, 0.0f, -1.0f), new[] { 1.0f, 0.0f, 0.0f, 1.0f });
+            _voxel1 = new Voxel(new Vector3(0.0f, 0.0f, -3.5f), new[] { 0.0f, 1.0f, 0.0f, 1.0f });
             _voxel2 = new Voxel(new Vector3(-1.5f, 0.0f, -7.0f), new[] { 0.0f, 0.0f, 1.0f, 1.0f });
+
+            _camera = new Camera(Vector3.Zero, Size.X/(float)Size.Y);
         }
 
         protected override void OnUnload()
@@ -51,6 +58,11 @@ namespace KitEngine
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
+            if (!IsFocused) // Check to see if the window is focused
+            {
+                return;
+            }
+
             base.OnUpdateFrame(e);
             CalculateFps(e.Time);
             Update();
@@ -64,28 +76,28 @@ namespace KitEngine
             Draw();
             SwapBuffers();
         }
-        // Note that we're translating the scene in the reverse direction of where we want to move.
-        Matrix4 _cameraPosition = Matrix4.CreateTranslation(0.0f, 0.0f, 0.0f);
+
         private void Draw()
         {
             ShaderProgram.ActivateProgram();
-            _voxel.Render(ref projection, ref _cameraPosition);
-            _voxel1.Render(ref projection, ref _cameraPosition);
-            _voxel2.Render(ref projection, ref _cameraPosition);
+            Matrix4 viewMatrix = _camera.ViewMatrix;
+            Matrix4 projection = _camera.ProjectionMatrix;
+            _voxel.Render(ref projection, ref viewMatrix);
+            _voxel1.Render(ref projection, ref viewMatrix);
+            _voxel2.Render(ref projection, ref viewMatrix);
             ShaderProgram.DeactivateProgram();
         }
 
-        private Matrix4 projection;
         protected override void OnResize(ResizeEventArgs e)
         {
-            projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), (float)e.Width / e.Height,
-                0.1f, 100.0f);
+            _camera.AspectRatio = (float)e.Width / e.Height;
             base.OnResize(e);
             GL.Viewport(0, 0, e.Width, e.Height);
         }
 
         private void CalculateFps(double deltaTime)
         {
+            _deltaTime = (float)deltaTime;
             _frameTime += deltaTime;
             _fps++;
 
@@ -108,6 +120,53 @@ namespace KitEngine
             if (input.IsKeyPressed(Keys.F1))
             {
                 CursorState = CursorState == CursorState.Hidden ? CursorState.Normal : CursorState.Hidden;
+            }
+
+            //Camera Input
+            const float sensitivity = 0.2f;
+            const float cameraSpeed = 1.5f;
+
+            if (input.IsKeyDown(Keys.W))
+            {
+                _camera.Position += _camera.Front * cameraSpeed * _deltaTime;
+            }
+
+            if (input.IsKeyDown(Keys.S))
+            {
+                _camera.Position -= _camera.Front * cameraSpeed * _deltaTime;
+            }
+            if (input.IsKeyDown(Keys.A))
+            {
+                _camera.Position -= _camera.Right * cameraSpeed * _deltaTime;
+            }
+            if (input.IsKeyDown(Keys.D))
+            {
+                _camera.Position += _camera.Right * cameraSpeed * _deltaTime;
+            }
+            if (input.IsKeyDown(Keys.Space))
+            {
+                _camera.Position += _camera.Up * cameraSpeed * _deltaTime;
+            }
+            if (input.IsKeyDown(Keys.LeftShift))
+            {
+                _camera.Position -= _camera.Up * cameraSpeed * _deltaTime;
+            }
+
+            var mouse = MouseState;
+
+            if (_firstMove)
+            {
+                _lastPos = new Vector2(mouse.X, mouse.Y);
+                _firstMove = false;
+            }
+            else
+            {
+                var deltaX = mouse.X - _lastPos.X;
+                var deltaY = mouse.Y - _lastPos.Y;
+                _lastPos = new Vector2(mouse.X, mouse.Y);
+
+                _camera.Yaw += deltaX * sensitivity;
+                _camera.Pitch -= deltaY * sensitivity;
             }
         }
     }
