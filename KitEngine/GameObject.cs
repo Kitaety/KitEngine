@@ -14,9 +14,7 @@ namespace KitEngine
         public Vector3 Position { get; set; }
         public Vector3 Rotation { get; set; }
         public List<Voxel> Mesh { get; set; }
-
-        private Matrix4 _rotationMatrix => Matrix4.CreateRotationX(MathHelper.DegreesToRadians(Rotation.X)) * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(Rotation.Y)) *
-                                           Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(Rotation.Z));
+        
         public GameObject(string name)
         {
             Name = name;
@@ -36,7 +34,7 @@ namespace KitEngine
         {
             foreach (var voxel in Mesh)
             {
-                voxel.Render(Position);
+                voxel.Render(Position, Rotation);
             }
         }
     }

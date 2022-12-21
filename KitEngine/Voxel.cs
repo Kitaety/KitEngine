@@ -45,7 +45,13 @@ namespace KitEngine
         public float[] Color { get; set; }
         private readonly ArrayObject _vertexArrayObject;
 
-        private Matrix4 GetTransformMatrix(Vector3 parentPosition) => Matrix4.CreateTranslation(parentPosition + Position);
+        private Matrix4 GetTransformMatrix(Vector3 parentPosition, Vector3 parentRotation)
+        {
+            Matrix4 mat4 = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(parentRotation.X)) * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(parentRotation.Y)) *
+                           Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(parentRotation.Z));
+
+            return mat4 * Matrix4.CreateTranslation(parentPosition + Vector3.TransformPosition(Position, mat4));
+        }
         public Voxel(Vector3 position, float[] color)
         {
             Position = position;
@@ -53,9 +59,9 @@ namespace KitEngine
             _vertexArrayObject = CreateVAO(GetArrayVertexColor(), Indexes);
         }
 
-        public void Render(Vector3 parentPosition)
+        public void Render(Vector3 parentPosition, Vector3 parentRotation)
         {
-            Game.Instance.ShaderProgram.SetUniform(ShaderProgramUniforms.Transform, GetTransformMatrix(parentPosition));
+            Game.Instance.ShaderProgram.SetUniform(ShaderProgramUniforms.Model, GetTransformMatrix(parentPosition, parentRotation));
 
             _vertexArrayObject.Activate();
             _vertexArrayObject.DrawElements(0, Indexes.Length, DrawElementsType.UnsignedInt);

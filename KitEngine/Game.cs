@@ -30,6 +30,7 @@ namespace KitEngine
         }
 
         private GameObject obj;
+        private GameObject obj1;
 
         protected override void OnLoad()
         {
@@ -42,20 +43,35 @@ namespace KitEngine
             ShaderProgram = new ShaderProgram(@"Shaders\base_shader.vert", @"Shaders\base_shader.frag");
             
             obj = new GameObject("test");
-            obj.Position = new Vector3(-0f, 0, -5);
-            obj.Rotation = new Vector3(0, 45, 0);
-            List<Voxel> voxels = new List<Voxel>();
-            voxels.Add(new Voxel(new Vector3(1.0f, 0.0f, -1.0f), new[] { 1.0f, 0.0f, 0.0f, 1.0f }));
-            voxels.Add(new Voxel(new Vector3(0.0f, 0.0f, -1.0f), new[] { 0.0f, 1.0f, 0.0f, 1.0f }));
-            voxels.Add(new Voxel(new Vector3(2.0f, 0.0f, -1.0f), new[] { 0.0f, 0.0f, 1.0f, 1.0f }));
+            obj.Position = new Vector3(0f, 0, -6);
+            obj.Rotation = new Vector3(0, 0, 0);
+            List<Voxel> voxels = new List<Voxel>
+            {
+                new Voxel(new Vector3(0.0f, 0.0f, 0.0f), new[] { 0.0f, 1.0f, 0.0f, 1.0f }),
+                new Voxel(new Vector3(1.0f, 0.0f, 0.0f), new[] { 1.0f, 0.0f, 0.0f, 1.0f }),
+                new Voxel(new Vector3(2.0f, 0.0f, 0.0f), new[] { 0.0f, 0.0f, 1.0f, 1.0f }),
+                new Voxel(new Vector3(2.0f, 0.0f, 1.0f), new[] { 0.0f, 0.0f, 1.0f, 1.0f })
+            };
             obj.Mesh = voxels;
-            
+
+            obj1 = new GameObject("test");
+            obj1.Position = new Vector3(0f, 0, -4);
+            obj1.Rotation = new Vector3(0, 0, 0);
+            List<Voxel> voxels1 = new List<Voxel>
+            {
+                new Voxel(new Vector3(0.0f, 0.0f, 0.0f), new[] { 1.0f, 0.0f, 1.0f, 1.0f }),
+                new Voxel(new Vector3(1.0f, 0.0f, 1.0f), new[] { 1.0f, 1.0f, 0.0f, 1.0f }),
+                new Voxel(new Vector3(2.0f, 0.0f, 2.0f), new[] { 1.0f, 1.0f, 1.0f, 1.0f })
+            };
+            obj1.Mesh = voxels1;
+
             _camera = new Camera(Vector3.Zero, Size);
         }
 
         protected override void OnUnload()
         {
             obj.Dispose();
+            obj1.Dispose();
             base.OnUnload();
             ShaderProgram.DeleteProgram();
         }
@@ -86,6 +102,7 @@ namespace KitEngine
             ShaderProgram.SetUniform(ShaderProgramUniforms.Projection, projection);
 
             obj.Render();
+            obj1.Render();
 
             ShaderProgram.DeactivateProgram();
         }
@@ -135,7 +152,6 @@ namespace KitEngine
             {
                 _camera.Position += _camera.Front * cameraSpeed * _deltaTime;
             }
-
             if (input.IsKeyDown(Keys.S))
             {
                 _camera.Position -= _camera.Front * cameraSpeed * _deltaTime;
@@ -173,6 +189,36 @@ namespace KitEngine
                 _camera.Yaw += deltaX * sensitivity;
                 _camera.Pitch -= deltaY * sensitivity;
             }
+
+            var rot = obj.Rotation;
+
+            if (input.IsKeyDown(Keys.Q))
+            {
+                rot.Y += _deltaTime * 15f;
+            }
+            if (input.IsKeyDown(Keys.E))
+            {
+                rot.Y -= _deltaTime * 15f;
+            }
+
+            if (input.IsKeyDown(Keys.R))
+            {
+                rot.X += _deltaTime * 15f;
+            }
+            if (input.IsKeyDown(Keys.T))
+            {
+                rot.X -= _deltaTime * 15f;
+            }
+
+            if (input.IsKeyDown(Keys.Y))
+            {
+                rot.Z += _deltaTime * 15f;
+            }
+            if (input.IsKeyDown(Keys.U))
+            {
+                rot.Z -= _deltaTime * 15f;
+            }
+            obj.Rotation = rot;
         }
 
         private void ActivateDebugMode(bool isDebug)

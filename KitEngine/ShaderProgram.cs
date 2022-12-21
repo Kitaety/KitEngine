@@ -80,6 +80,6 @@ namespace KitEngine
     {
         public const string View = "view";
         public const string Projection = "projection";
-        public const string Transform = "transform";
+        public const string Model = "model";
     }
 }
