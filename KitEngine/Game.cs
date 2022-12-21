@@ -11,6 +11,7 @@ namespace KitEngine
     {
         public static Game Instance = null;
 
+        private bool _isDebug = false;
         private double _frameTime = 0.0f;
         private float _fps = 0.0f;
         private float _deltaTime = 0.0f;
@@ -58,11 +59,6 @@ namespace KitEngine
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            if (!IsFocused) // Check to see if the window is focused
-            {
-                return;
-            }
-
             base.OnUpdateFrame(e);
             CalculateFps(e.Time);
             Update();
@@ -119,7 +115,7 @@ namespace KitEngine
             }
             if (input.IsKeyPressed(Keys.F1))
             {
-                CursorState = CursorState == CursorState.Hidden ? CursorState.Normal : CursorState.Hidden;
+                ActivateDebugMode(!_isDebug);
             }
 
             //Camera Input
@@ -167,6 +163,19 @@ namespace KitEngine
 
                 _camera.Yaw += deltaX * sensitivity;
                 _camera.Pitch -= deltaY * sensitivity;
+            }
+        }
+
+        private void ActivateDebugMode(bool isDebug)
+        {
+            _isDebug = isDebug;
+            if (isDebug)
+            {
+                CursorState = CursorState.Normal;
+            }
+            else
+            {
+                CursorState = CursorState.Grabbed;
             }
         }
     }
