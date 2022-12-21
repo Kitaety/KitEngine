@@ -9,7 +9,7 @@ namespace KitEngine
 {
     public class Game : GameWindow
     {
-        public static Game Instance = null;
+        public static Game Instance;
 
         private bool _isDebug = false;
         private double _frameTime = 0.0f;
@@ -19,12 +19,7 @@ namespace KitEngine
         private Vector2 _lastPos;
 
         public ShaderProgram ShaderProgram { private set; get; }
-        private Voxel _voxel;
-        private Voxel _voxel1;
-        private Voxel _voxel2;
         private Camera _camera;
-
-
 
         public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings, VSyncMode vSyncMode = VSyncMode.Off) : base(
             gameWindowSettings, nativeWindowSettings)
@@ -33,7 +28,9 @@ namespace KitEngine
             CursorState = CursorState.Grabbed;
             Game.Instance = this;
         }
-        
+
+        private GameObject obj;
+
         protected override void OnLoad()
         {
             base.OnLoad();
@@ -43,16 +40,22 @@ namespace KitEngine
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
             ShaderProgram = new ShaderProgram(@"Shaders\base_shader.vert", @"Shaders\base_shader.frag");
-            _voxel = new Voxel(new Vector3(1.5f, 0.0f, -1.0f), new[] { 1.0f, 0.0f, 0.0f, 1.0f });
-            _voxel1 = new Voxel(new Vector3(0.0f, 0.0f, -3.5f), new[] { 0.0f, 1.0f, 0.0f, 1.0f });
-            _voxel2 = new Voxel(new Vector3(-1.5f, 0.0f, -7.0f), new[] { 0.0f, 0.0f, 1.0f, 1.0f });
-
-            _camera = new Camera(Vector3.Zero, Size.X/(float)Size.Y);
+            
+            obj = new GameObject("test");
+            obj.Position = new Vector3(-0f, 0, -5);
+            obj.Rotation = new Vector3(0, 45, 0);
+            List<Voxel> voxels = new List<Voxel>();
+            voxels.Add(new Voxel(new Vector3(1.0f, 0.0f, -1.0f), new[] { 1.0f, 0.0f, 0.0f, 1.0f }));
+            voxels.Add(new Voxel(new Vector3(0.0f, 0.0f, -1.0f), new[] { 0.0f, 1.0f, 0.0f, 1.0f }));
+            voxels.Add(new Voxel(new Vector3(2.0f, 0.0f, -1.0f), new[] { 0.0f, 0.0f, 1.0f, 1.0f }));
+            obj.Mesh = voxels;
+            
+            _camera = new Camera(Vector3.Zero, Size);
         }
 
         protected override void OnUnload()
         {
-            _voxel.Dispose();
+            obj.Dispose();
             base.OnUnload();
             ShaderProgram.DeleteProgram();
         }
@@ -78,16 +81,19 @@ namespace KitEngine
             ShaderProgram.ActivateProgram();
             Matrix4 viewMatrix = _camera.ViewMatrix;
             Matrix4 projection = _camera.ProjectionMatrix;
-            _voxel.Render(ref projection, ref viewMatrix);
-            _voxel1.Render(ref projection, ref viewMatrix);
-            _voxel2.Render(ref projection, ref viewMatrix);
+
+            ShaderProgram.SetUniform(ShaderProgramUniforms.View, viewMatrix);
+            ShaderProgram.SetUniform(ShaderProgramUniforms.Projection, projection);
+
+            obj.Render();
+
             ShaderProgram.DeactivateProgram();
         }
 
         protected override void OnResize(ResizeEventArgs e)
         {
-            _camera.AspectRatio = (float)e.Width / e.Height;
             base.OnResize(e);
+            _camera.ViewSize = Size;
             GL.Viewport(0, 0, e.Width, e.Height);
         }
 
@@ -117,7 +123,10 @@ namespace KitEngine
             {
                 ActivateDebugMode(!_isDebug);
             }
-
+            if (input.IsKeyPressed(Keys.F2))
+            {
+                _camera.IsOrthographic = !_camera.IsOrthographic;
+            }
             //Camera Input
             const float sensitivity = 0.2f;
             const float cameraSpeed = 1.5f;

@@ -1,15 +1,15 @@
 ﻿#version 460 core
 
-in vec4 aPosition;
-in vec4 aColor;
+in vec4 inPosition;
+in vec4 inColor;
 out vec4 inColorFrag;
 
-layout (location = 20) uniform  mat4 transform;
-layout (location = 21) uniform  mat4 view;
-layout (location = 22) uniform  mat4 projection;
+uniform mat4 transform;
+uniform mat4 view;
+uniform mat4 projection;
 
 void main()
 {
-    inColorFrag = aColor;
-    gl_Position = aPosition * transform * view * projection;
+    inColorFrag = inColor;
+    gl_Position = inPosition * transform * view * projection;
 }

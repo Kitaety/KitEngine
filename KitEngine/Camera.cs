@@ -1,28 +1,20 @@
 ﻿using OpenTK.Mathematics;
 using System;
+using System.Drawing;
 
 namespace KitEngine
 {
     public class Camera
     {
-        private Vector3 _front = -Vector3.UnitZ;
-        private Vector3 _up = Vector3.UnitY;
-        private Vector3 _right = Vector3.UnitX;
-        private float _pitch;
-        private float _yaw = -MathHelper.PiOver2;
-        private float _fov = MathHelper.PiOver2;
-
-        public Camera(Vector3 position, float aspectRatio)
-        {
-            Position = position;
-            AspectRatio = aspectRatio;
-        }
-
+        public bool IsOrthographic { get; set; }
+        public Vector2i ViewSize { get; set; }
+        public float DepthNear { get; set; }
+        public float DepthFar { get; set; }
         public Vector3 Position { get; set; }
-        public float AspectRatio { private get; set; }
-        public Vector3 Front => _front;
-        public Vector3 Up => _up;
-        public Vector3 Right => _right;
+        public float AspectRatio => ViewSize.X / (float)ViewSize.Y;
+        public Vector3 Front { get; private set; } = -Vector3.UnitZ;
+        public Vector3 Up => Vector3.Normalize(Vector3.Cross(Right, Front));
+        public Vector3 Right => Vector3.Normalize(Vector3.Cross(Front, Vector3.UnitY));
         public float Pitch
         {
             get => MathHelper.RadiansToDegrees(_pitch);
@@ -30,42 +22,53 @@ namespace KitEngine
             {
                 var angle = MathHelper.Clamp(value, -89f, 89f);
                 _pitch = MathHelper.DegreesToRadians(angle);
-                UpdateVectors();
+                UpdateFrontVector();
             }
         }
-        
         public float Yaw
         {
             get => MathHelper.RadiansToDegrees(_yaw);
             set
             {
                 _yaw = MathHelper.DegreesToRadians(value);
-                UpdateVectors();
+                UpdateFrontVector();
             }
         }
-        
         public float Fov
         {
             get => MathHelper.RadiansToDegrees(_fov);
             set
             {
-                var angle = MathHelper.Clamp(value, 1f, 90f);
+                var angle = MathHelper.Clamp(value, 1f, 120f);
                 _fov = MathHelper.DegreesToRadians(angle);
             }
         }
-        public Matrix4 ViewMatrix => Matrix4.LookAt(Position, Position + _front, _up);
-        public Matrix4 ProjectionMatrix => Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, 0.01f, 1000f);
-        
-        private void UpdateVectors()
+        public Matrix4 ViewMatrix => Matrix4.LookAt(Position, Position + Front, Up);
+        public Matrix4 ProjectionMatrix => IsOrthographic ? Matrix4.CreateOrthographic(ViewSize.X, ViewSize.Y, DepthNear, DepthFar)
+            : Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, DepthNear, DepthFar);
+
+        private float _pitch;
+        private float _yaw = -MathHelper.PiOver2;
+        private float _fov = MathHelper.PiOver2;
+
+        public Camera(Vector3 position, Vector2i size, bool isOrthographic = false, float depthNear = 0.01f, float depthFar = 1000.0f, float fov = 45.0f)
         {
-            _front.X = MathF.Cos(_pitch) * MathF.Cos(_yaw);
-            _front.Y = MathF.Sin(_pitch);
-            _front.Z = MathF.Cos(_pitch) * MathF.Sin(_yaw);
+            DepthNear = depthNear;
+            DepthFar = depthFar;
+            Position = position;
+            ViewSize = size;
+            IsOrthographic = isOrthographic;
+            Fov = fov;
+        }
 
-            _front = Vector3.Normalize(_front);
+        private void UpdateFrontVector()
+        {
+            Vector3 newFront = Front;
+            newFront.X = MathF.Cos(_pitch) * MathF.Cos(_yaw);
+            newFront.Y = MathF.Sin(_pitch);
+            newFront.Z = MathF.Cos(_pitch) * MathF.Sin(_yaw);
 
-            _right = Vector3.Normalize(Vector3.Cross(_front, Vector3.UnitY));
-            _up = Vector3.Normalize(Vector3.Cross(_right, _front));
+            Front = Vector3.Normalize(newFront);
         }
     }
 }

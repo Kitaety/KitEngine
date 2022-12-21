@@ -1,4 +1,5 @@
 ﻿using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
 
 namespace KitEngine
 {
@@ -34,7 +35,15 @@ namespace KitEngine
 
         public void DeleteProgram() => GL.DeleteProgram(_program);
 
-        public int GetAttribProgram(string name) => GL.GetAttribLocation(_program, name);
+        public int GetAttributeProgram(string name) => GL.GetAttribLocation(_program, name);
+        public int GetUniformProgram(string name) => GL.GetUniformLocation(_program, name);
+
+        public void SetUniform(string name, Matrix4 data)
+        {
+            GL.UniformMatrix4(GetUniformProgram(name),
+                true,
+                ref data);
+        }
 
         private int CreateShader(ShaderType type, string filePath)
         {
@@ -59,5 +68,18 @@ namespace KitEngine
             GL.DetachShader(_program, shader);
             GL.DeleteShader(shader);
         }
+    }
+
+    public static class ShaderProgramAttributes
+    {
+        public const string Position = "inPosition";
+        public const string Color = "inColor";
+    }
+
+    public static class ShaderProgramUniforms
+    {
+        public const string View = "view";
+        public const string Projection = "projection";
+        public const string Transform = "transform";
     }
 }

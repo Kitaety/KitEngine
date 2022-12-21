@@ -5,22 +5,7 @@ namespace KitEngine
 {
     internal class Voxel:IDisposable
     {
-        public Vector3 Position;
-        public float[] Vertexes { get; } = new float[]
-        {
-            -0.5f, 0.5f, 0.5f, 1.0f,
-            -0.5f, -0.5f, 0.5f, 1.0f,
-            0.5f, -0.5f, 0.5f, 1.0f,
-            0.5f, 0.5f, 0.5f, 1.0f,
-            -0.5f, 0.5f, -0.5f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 1.0f,
-            0.5f, -0.5f, -0.5f, 1.0f,
-            0.5f, 0.5f, -0.5f, 1.0f,
-        };
-        public float[] Color { get; set; }
-
-        private uint[] _indexes { get; } = new uint[]
-        {
+        private static readonly uint[] Indexes = {
             //front
             0, 1, 2,
             0, 2, 3,
@@ -45,38 +30,40 @@ namespace KitEngine
             4, 6, 5,
             4, 7, 6,
         };
+        public static readonly float[] Vertexes = {
+            -0.5f, 0.5f, 0.5f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 1.0f,
+            0.5f, -0.5f, 0.5f, 1.0f,
+            0.5f, 0.5f, 0.5f, 1.0f,
+            -0.5f, 0.5f, -0.5f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 1.0f,
+            0.5f, -0.5f, -0.5f, 1.0f,
+            0.5f, 0.5f, -0.5f, 1.0f,
+        };
 
-        private ArrayObject _vao;
+        public Vector3 Position;
+        public float[] Color { get; set; }
+        private readonly ArrayObject _vertexArrayObject;
 
+        private Matrix4 GetTransformMatrix(Vector3 parentPosition) => Matrix4.CreateTranslation(parentPosition + Position);
         public Voxel(Vector3 position, float[] color)
         {
             Position = position;
             Color = color;
-            _vao = CreateVAO(GetArrayVertexColor(), _indexes);
+            _vertexArrayObject = CreateVAO(GetArrayVertexColor(), Indexes);
         }
 
-        public void Render(ref Matrix4 projection, ref Matrix4 view)
+        public void Render(Vector3 parentPosition)
         {
-            Matrix4 scale = Matrix4.CreateScale(1f, 1f, 1f);
-            Matrix4.CreateTranslation(Position, out Matrix4 position);
-            Matrix4 trans = scale * position;
-            
-            GL.UniformMatrix4(20,
-                true,
-                ref trans);
-            GL.UniformMatrix4(21,
-                true,
-                ref view);
-            GL.UniformMatrix4(22,
-                true,
-                ref projection);
-            _vao.Activate();
-            _vao.DrawElements(0, _indexes.Length, DrawElementsType.UnsignedInt);
+            Game.Instance.ShaderProgram.SetUniform(ShaderProgramUniforms.Transform, GetTransformMatrix(parentPosition));
+
+            _vertexArrayObject.Activate();
+            _vertexArrayObject.DrawElements(0, Indexes.Length, DrawElementsType.UnsignedInt);
         }
         
         public void Dispose()
         {
-            _vao.Dispose();
+            _vertexArrayObject.Dispose();
         }
 
         private float[] GetArrayVertexColor()
@@ -97,8 +84,8 @@ namespace KitEngine
 
         private ArrayObject CreateVAO(float[] vertices, uint[] indexes)
         {
-            int vertexArray = Game.Instance.ShaderProgram.GetAttribProgram("aPosition");
-            int colorArray = Game.Instance.ShaderProgram.GetAttribProgram("aColor");
+            int vertexArray = Game.Instance.ShaderProgram.GetAttributeProgram(ShaderProgramAttributes.Position);
+            int colorArray = Game.Instance.ShaderProgram.GetAttributeProgram(ShaderProgramAttributes.Color);
 
             BufferObject vbo = new BufferObject(BufferTarget.ArrayBuffer);
             vbo.SetData(BufferUsageHint.StaticDraw, vertices);

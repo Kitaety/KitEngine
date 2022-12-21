@@ -53,11 +53,6 @@ namespace KitEngine
                 GL.DisableVertexAttribArray(attrib);
             }
         }
-        public void Draw(int start, int count)
-        {
-            Activate();
-            GL.DrawArrays(PrimitiveType.Triangles, start, count);
-        }
 
         public void DrawElements(int start, int count, DrawElementsType elementType)
         {
