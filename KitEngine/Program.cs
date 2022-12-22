@@ -5,7 +5,7 @@ using OpenTK.Mathematics;
 
 var nativeWindowSettings = new NativeWindowSettings()
 {
-    Size = new Vector2i(800, 600),
+    Size = new Vector2i(1500, 700),
     WindowState = WindowState.Normal,
     Title = "KitEngine",
 

@@ -3,7 +3,7 @@ using OpenTK.Mathematics;
 
 namespace KitEngine
 {
-    internal class Voxel:IDisposable
+    public class Voxel:IDisposable
     {
         private static readonly uint[] Indexes = {
             //front
@@ -41,27 +41,21 @@ namespace KitEngine
             0.5f, 0.5f, -0.5f, 1.0f,
         };
 
-        public Vector3 Position;
+        public Transform Transform { get; set; }
+
         public float[] Color { get; set; }
         private readonly ArrayObject _vertexArrayObject;
 
-        private Matrix4 GetTransformMatrix(Vector3 parentPosition, Vector3 parentRotation)
+        public Voxel(Vector3 position, float[] color, Transform parent)
         {
-            Matrix4 mat4 = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(parentRotation.X)) * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(parentRotation.Y)) *
-                           Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(parentRotation.Z));
-
-            return mat4 * Matrix4.CreateTranslation(parentPosition + Vector3.TransformPosition(Position, mat4));
-        }
-        public Voxel(Vector3 position, float[] color)
-        {
-            Position = position;
+            Transform = new Transform(parent, position, parent.Rotation);
             Color = color;
             _vertexArrayObject = CreateVAO(GetArrayVertexColor(), Indexes);
         }
 
-        public void Render(Vector3 parentPosition, Vector3 parentRotation)
+        public void Render()
         {
-            Game.Instance.ShaderProgram.SetUniform(ShaderProgramUniforms.Model, GetTransformMatrix(parentPosition, parentRotation));
+            Game.Instance.ShaderProgram.SetUniform(ShaderProgramUniforms.Model, Transform.GetModelMatrix());
 
             _vertexArrayObject.Activate();
             _vertexArrayObject.DrawElements(0, Indexes.Length, DrawElementsType.UnsignedInt);
@@ -71,6 +65,15 @@ namespace KitEngine
         {
             _vertexArrayObject.Dispose();
         }
+
+        //private Matrix4 GetModelMatrix()
+        //{
+        //    Transform parentTransform = Transform.Parent!;
+
+        //    Matrix4 mat4 = Matrix4.CreateFromQuaternion(parentTransform.Rotation);
+
+        //    return mat4 * Matrix4.CreateTranslation(parentTransform.Position + Vector3.TransformPosition(Transform.Position, mat4));
+        //}
 
         private float[] GetArrayVertexColor()
         {
@@ -112,5 +115,6 @@ namespace KitEngine
 
             return vao;
         }
+
     }
 }

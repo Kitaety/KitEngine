@@ -42,26 +42,24 @@ namespace KitEngine
             GL.CullFace(CullFaceMode.Back);
             ShaderProgram = new ShaderProgram(@"Shaders\base_shader.vert", @"Shaders\base_shader.frag");
             
-            obj = new GameObject("test");
-            obj.Position = new Vector3(0f, 0, -6);
-            obj.Rotation = new Vector3(0, 0, 0);
+            Quaternion zeroRot = Quaternion.FromEulerAngles(Vector3.Zero);
+
+            obj = new GameObject("test", new Vector3(0f, 0, -6), zeroRot);
             List<Voxel> voxels = new List<Voxel>
             {
-                new Voxel(new Vector3(0.0f, 0.0f, 0.0f), new[] { 0.0f, 1.0f, 0.0f, 1.0f }),
-                new Voxel(new Vector3(1.0f, 0.0f, 0.0f), new[] { 1.0f, 0.0f, 0.0f, 1.0f }),
-                new Voxel(new Vector3(2.0f, 0.0f, 0.0f), new[] { 0.0f, 0.0f, 1.0f, 1.0f }),
-                new Voxel(new Vector3(2.0f, 0.0f, 1.0f), new[] { 0.0f, 0.0f, 1.0f, 1.0f })
+                new Voxel(new Vector3(0.0f, 0.0f, 0.0f), new[] { 0.0f, 1.0f, 0.0f, 1.0f }, obj.Transform),
+                new Voxel(new Vector3(1.0f, 0.0f, 0.0f), new[] { 1.0f, 0.0f, 0.0f, 1.0f }, obj.Transform),
+                new Voxel(new Vector3(2.0f, 0.0f, 0.0f), new[] { 0.0f, 0.0f, 1.0f, 1.0f }, obj.Transform),
+                new Voxel(new Vector3(2.0f, 0.0f, 1.0f), new[] { 0.0f, 0.0f, 1.0f, 1.0f }, obj.Transform)
             };
             obj.Mesh = voxels;
 
-            obj1 = new GameObject("test");
-            obj1.Position = new Vector3(0f, 0, -4);
-            obj1.Rotation = new Vector3(0, 0, 0);
+            obj1 = new GameObject("test", new Vector3(0f, 0, -4), zeroRot);
             List<Voxel> voxels1 = new List<Voxel>
             {
-                new Voxel(new Vector3(0.0f, 0.0f, 0.0f), new[] { 1.0f, 0.0f, 1.0f, 1.0f }),
-                new Voxel(new Vector3(1.0f, 0.0f, 1.0f), new[] { 1.0f, 1.0f, 0.0f, 1.0f }),
-                new Voxel(new Vector3(2.0f, 0.0f, 2.0f), new[] { 1.0f, 1.0f, 1.0f, 1.0f })
+                new Voxel(new Vector3(0.0f, 0.0f, 0.0f), new[] { 1.0f, 0.0f, 1.0f, 1.0f }, obj1.Transform),
+                new Voxel(new Vector3(1.0f, 0.0f, 1.0f), new[] { 1.0f, 1.0f, 0.0f, 1.0f }, obj1.Transform),
+                new Voxel(new Vector3(2.0f, 0.0f, 2.0f), new[] { 1.0f, 1.0f, 1.0f, 1.0f }, obj1.Transform)
             };
             obj1.Mesh = voxels1;
 
@@ -190,35 +188,37 @@ namespace KitEngine
                 _camera.Pitch -= deltaY * sensitivity;
             }
 
-            var rot = obj.Rotation;
-
+            var rot = Vector3.Zero;
+            var speedRot = _deltaTime * 50f;
             if (input.IsKeyDown(Keys.Q))
             {
-                rot.Y += _deltaTime * 15f;
+                rot.Y = speedRot;
             }
             if (input.IsKeyDown(Keys.E))
             {
-                rot.Y -= _deltaTime * 15f;
+                rot.Y -= speedRot;
             }
 
             if (input.IsKeyDown(Keys.R))
             {
-                rot.X += _deltaTime * 15f;
+                rot.X += speedRot;
             }
             if (input.IsKeyDown(Keys.T))
             {
-                rot.X -= _deltaTime * 15f;
+                rot.X -= speedRot;
             }
 
             if (input.IsKeyDown(Keys.Y))
             {
-                rot.Z += _deltaTime * 15f;
+                rot.Z += speedRot;
             }
             if (input.IsKeyDown(Keys.U))
             {
-                rot.Z -= _deltaTime * 15f;
+                rot.Z -= speedRot;
             }
-            obj.Rotation = rot;
+
+
+            obj.Rotate(rot);
         }
 
         private void ActivateDebugMode(bool isDebug)
