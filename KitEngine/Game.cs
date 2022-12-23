@@ -17,8 +17,6 @@ namespace KitEngine
         private double _frameTime = 0.0f;
         private float _fps = 0.0f;
         private float _deltaTime = 0.0f;
-        private bool _firstMove = true;
-        private Vector2 _lastPos;
 
         public ShaderProgram ShaderProgram { private set; get; }
         private Camera _camera;
@@ -31,8 +29,7 @@ namespace KitEngine
             Game.Instance = this;
         }
 
-        private GameObject obj;
-        private GameObject obj1;
+        private List<GameObject> GameObjects = new List<GameObject>();
 
         protected override void OnLoad()
         {
@@ -43,35 +40,16 @@ namespace KitEngine
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
             ShaderProgram = new ShaderProgram(@"Shaders\base_shader.vert", @"Shaders\base_shader.frag");
-            
-            Quaternion zeroRot = Quaternion.FromEulerAngles(Vector3.Zero);
-
-            obj = new GameObject("test", new Vector3(0f, 0, -6), zeroRot);
-            List<Voxel> voxels = new List<Voxel>
-            {
-                new Voxel(new Vector3(0.0f, 0.0f, 0.0f), new[] { 0.0f, 1.0f, 0.0f, 1.0f }, obj.Transform),
-                new Voxel(new Vector3(1.0f, 0.0f, 0.0f), new[] { 1.0f, 0.0f, 0.0f, 1.0f }, obj.Transform),
-                new Voxel(new Vector3(2.0f, 0.0f, 0.0f), new[] { 0.0f, 0.0f, 1.0f, 1.0f }, obj.Transform),
-                new Voxel(new Vector3(2.0f, 0.0f, 1.0f), new[] { 0.0f, 0.0f, 1.0f, 1.0f }, obj.Transform)
-            };
-            obj.Mesh = voxels;
-
-            obj1 = new GameObject("test", new Vector3(0f, 0, -4), zeroRot);
-            List<Voxel> voxels1 = new List<Voxel>
-            {
-                new Voxel(new Vector3(0.0f, 0.0f, 0.0f), new[] { 1.0f, 0.0f, 1.0f, 1.0f }, obj1.Transform),
-                new Voxel(new Vector3(1.0f, 0.0f, 1.0f), new[] { 1.0f, 1.0f, 0.0f, 1.0f }, obj1.Transform),
-                new Voxel(new Vector3(2.0f, 0.0f, 2.0f), new[] { 1.0f, 1.0f, 1.0f, 1.0f }, obj1.Transform)
-            };
-            obj1.Mesh = voxels1;
-
             _camera = new Camera("Camera", Vector3.Zero, Size);
+            CreateTestObjects();
         }
 
         protected override void OnUnload()
         {
-            obj.Dispose();
-            obj1.Dispose();
+            foreach (GameObject gameObject in GameObjects)
+            {
+                gameObject.Dispose();
+            }
             base.OnUnload();
             ShaderProgram.DeleteProgram();
         }
@@ -101,8 +79,10 @@ namespace KitEngine
             ShaderProgram.SetUniform(ShaderProgramUniforms.View, viewMatrix);
             ShaderProgram.SetUniform(ShaderProgramUniforms.Projection, projection);
 
-            obj.Render();
-            obj1.Render();
+            foreach (GameObject gameObject in GameObjects)
+            {
+                gameObject.Render();
+            }
 
             ShaderProgram.DeactivateProgram();
         }
@@ -177,7 +157,7 @@ namespace KitEngine
                     break;
             }
 
-            obj.Rotate(rot);
+            GameObjects[2].Rotate(rot);
         }
 
         private void ActivateDebugMode(bool isDebug)
@@ -193,12 +173,10 @@ namespace KitEngine
             }
         }
 
-
         private void UpdateCamera()
         {
-            //Camera Input
-            const float sensitivity = 0.05f;
-            const float cameraSpeed = 1.5f;
+            const float sensitivity = 0.025f;
+            const float cameraSpeed = 2f;
 
             Vector3 camPos = _camera.Transform.Position;
 
@@ -232,6 +210,49 @@ namespace KitEngine
             var mouseY = -mouse.Y * sensitivity;
 
             _camera.Rotate(new Vector3(mouseY, mouseX, 0));
+        }
+
+        private void CreateTestObjects()
+        {
+            var obj = new GameObject("test", new Vector3(0f, 0, -6), Vector3.Zero);
+            List<Voxel> voxels = new List<Voxel>
+            {
+                new Voxel(new Vector3(0.0f, 0.0f, 0.0f), new[] { 0.0f, 1.0f, 0.0f, 1.0f }, obj.Transform),
+                new Voxel(new Vector3(1.0f, 0.0f, 0.0f), new[] { 1.0f, 0.0f, 0.0f, 1.0f }, obj.Transform),
+                new Voxel(new Vector3(2.0f, 0.0f, 0.0f), new[] { 0.0f, 0.0f, 1.0f, 1.0f }, obj.Transform),
+                new Voxel(new Vector3(2.0f, 0.0f, 1.0f), new[] { 0.0f, 0.0f, 1.0f, 1.0f }, obj.Transform)
+            };
+            obj.Mesh = voxels;
+
+            var obj1 = new GameObject("test1", new Vector3(0f, 0, -4), Vector3.Zero);
+            List<Voxel> voxels1 = new List<Voxel>
+            {
+                new Voxel(new Vector3(0.0f, 0.0f, 0.0f), new[] { 1.0f, 0.0f, 1.0f, 1.0f }, obj1.Transform),
+                new Voxel(new Vector3(1.0f, 0.0f, 1.0f), new[] { 1.0f, 1.0f, 0.0f, 1.0f }, obj1.Transform),
+                new Voxel(new Vector3(2.0f, 0.0f, 2.0f), new[] { 1.0f, 1.0f, 1.0f, 1.0f }, obj1.Transform)
+            };
+            obj1.Mesh = voxels1;
+
+            var obj2 = new GameObject("test2", new Vector3(-1f, 0f, -2f), (0f, 1f, 0f));
+            obj2.Mesh = new List<Voxel>
+                { new Voxel(new Vector3(0.0f, 0.0f, 0.0f), new[] { 1f, 0f, 0f, 1.0f }, obj2.Transform) };
+            
+            var obj2_1 = new GameObject("test2_1", new Vector3(1f, 0f, 0f), new Vector3(0, 0.5f, 0), obj2.Transform);
+            obj2_1.Mesh = new List<Voxel>
+                { new Voxel(new Vector3(0.0f, 0.0f, 0.0f), new[] { 0f, 1f, 0f, 1.0f }, obj2_1.Transform) };
+            
+            //var obj2_2 = new GameObject("test2_2", new Vector3(1f, 1f, 0f), new Vector3(0, 15, 0));
+            //obj2_2.Mesh = new List<Voxel>
+            //    { new Voxel(new Vector3(0.0f, 0.0f, 0.0f), new[] { 0f, 0f, 1f, 1.0f }, obj2_2.Transform) };
+
+            // obj2.AddChild(obj2_1);
+            
+            //obj2.AddChild(obj2_2.Copy());
+            //obj2_1.AddChild(obj2_2);
+
+            GameObjects.Add(obj);
+            GameObjects.Add(obj1);
+            GameObjects.Add(obj2);
         }
     }
 }

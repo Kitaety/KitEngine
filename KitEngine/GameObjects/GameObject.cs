@@ -1,56 +1,70 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
-using KitEngine.Render;
-using OpenTK.Mathematics;
-using Quaternion = OpenTK.Mathematics.Quaternion;
+﻿using Quaternion = OpenTK.Mathematics.Quaternion;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace KitEngine.GameObjects
 {
-    public sealed class GameObject : BaseObject, IDisposable
+    public class GameObject : IDisposable
     {
+        public string Name { get; set; }
+        public Transform Transform { get; set; }
+        public List<GameObject> Children { get; private set; }
         public List<Voxel> Mesh { get; set; }
 
         public GameObject(string name, Transform? parent = null)
         : this(name, Vector3.Zero, Quaternion.FromEulerAngles(Vector3.Zero), parent)
         { }
-        public GameObject(string name, Vector3 position, Quaternion rotation, Transform? parent = null) 
-            : this(name, new Transform(parent, position, rotation), parent)
+
+        public GameObject(string name, Vector3 position, Vector3 rotation, Transform? parent = null)
+            : this(name, position, Quaternion.FromEulerAngles(rotation), parent)
         {}
 
-        public GameObject(string name, Transform transform, Transform? parent = null)
-            : base(name, transform)
+        public GameObject(string name, Vector3 position, Quaternion rotation, Transform? parent = null)
         {
-            transform.Parent = parent;
             Mesh = new List<Voxel>();
-        }
-
-        public override void Rotate(Quaternion rotation)
-        {
-            Transform.Rotate(rotation);
-            Mesh.ForEach(voxel => voxel.Transform.Rotate(rotation));
+            Transform = new Transform(parent, position, rotation);
+            Transform.GameObject = this;
+            Name = name;
+            Children = new List<GameObject>();
+            Transform.Parent?.GameObject.AddChild(this);
         }
 
         public void Dispose()
         {
-            foreach (Voxel voxel in Mesh)
-            {
-                voxel.Dispose();
-            }
+            Mesh.ForEach(voxel => voxel.Dispose());
+            Children.ForEach(child => child.Dispose());
         }
 
         public void Render()
         {
-            foreach (Voxel voxel in Mesh)
-            {
-                voxel.Render();
-            }
+            Mesh.ForEach(voxel => voxel.Render());
+            Children.ForEach(child=> child.Render());
         }
 
+        public GameObject Copy()
+        {
+            GameObject copyObject = new GameObject(Name, Transform.Position, Transform.Rotation);
+            copyObject.Mesh.AddRange(Mesh.Select(voxel => new Voxel(voxel.Transform.Position, voxel.Color, copyObject.Transform)));
+            copyObject.Children.AddRange(Children.Select(child => child.Copy()));
+            return copyObject;
+        }
+
+        public void Rotate(Vector3 rotation)
+        {
+            Rotate(Quaternion.FromEulerAngles(rotation));
+        }
+
+        public void Rotate(Quaternion rotation)
+        {
+            Transform.Rotate(rotation);
+            Mesh.ForEach(voxel => voxel.Transform.Rotate(rotation));
+            Children.ForEach(child => child.Rotate(rotation));
+        }
+
+        public void AddChild(GameObject child)
+        {
+            child.Transform.Parent = Transform;
+            child.Rotate(Transform.Rotation);
+            Children.Add(child);
+        }
     }
 }

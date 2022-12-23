@@ -5,9 +5,22 @@ namespace KitEngine.GameObjects
 {
     public class Transform
     {
+        public GameObject GameObject { get; set; }
         public Vector3 Position { get; set; }
         public Quaternion Rotation { get; set; }
         public Transform? Parent { get; set; }
+
+        public Vector3 GetGlobalPosition()
+        {
+            var parentGlobalPos = Parent?.GetGlobalPosition() ?? Vector3.Zero;
+            var parentGlobalRot =  Matrix4.CreateFromQuaternion(Parent?.Rotation ?? Quaternion.FromEulerAngles(Vector3.Zero));
+            var myGlobalPos = parentGlobalPos + Vector3.TransformPosition(Position, parentGlobalRot);
+
+            return myGlobalPos;
+        }
+
+        public Quaternion GetGlobalRotation() =>
+            Rotation * (Parent?.Rotation ?? Quaternion.FromEulerAngles(Vector3.Zero));
 
         public Vector3 Front => Rotation * -Vector3.UnitZ;
         public Vector3 Up => Vector3.Normalize(Vector3.Cross(Right, Front));
@@ -26,13 +39,8 @@ namespace KitEngine.GameObjects
 
         public Matrix4 GetModelMatrix()
         {
-            Vector3 parentPosition = Parent?.Position ?? Vector3.Zero;
-            Matrix4 parentRotationMatrix = Matrix4.CreateFromQuaternion(Parent?.Rotation ?? Quaternion.FromEulerAngles(Vector3.Zero));
-
-
-            Vector3 globalPosition = Vector3.TransformPosition(Position, parentRotationMatrix);
             Matrix4 rotationMatrix = Matrix4.CreateFromQuaternion(Rotation);
-            Matrix4 translationMatrix = Matrix4.CreateTranslation(parentPosition + globalPosition);
+            Matrix4 translationMatrix = Matrix4.CreateTranslation(GetGlobalPosition());
 
             return rotationMatrix * translationMatrix;
         }

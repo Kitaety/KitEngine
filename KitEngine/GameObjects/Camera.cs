@@ -2,7 +2,7 @@
 
 namespace KitEngine.GameObjects
 {
-    public class Camera: BaseObject
+    public class Camera: GameObject
     {
         public bool IsOrthographic { get; set; }
         public Vector2i ViewSize { get; set; }
@@ -22,15 +22,28 @@ namespace KitEngine.GameObjects
         public Matrix4 ProjectionMatrix => IsOrthographic ? Matrix4.CreateOrthographic(ViewSize.X, ViewSize.Y, DepthNear, DepthFar)
             : Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, DepthNear, DepthFar);
         private float _fov = MathHelper.PiOver2;
+        private float _pitch = -MathHelper.PiOver2;
 
         public Camera(string name, Vector3 position, Vector2i size, bool isOrthographic = false, float depthNear = 0.01f, float depthFar = 1000.0f, float fov = 45.0f)
-        :base(name, new Transform(null, position, Quaternion.FromEulerAngles(Vector3.Zero)))
+        :base(name, position, Quaternion.FromEulerAngles(Vector3.Zero))
         {
             DepthNear = depthNear;
             DepthFar = depthFar;
             ViewSize = size;
             IsOrthographic = isOrthographic;
             Fov = fov;
+        }
+
+        public new void Rotate(Quaternion rotation)
+        {
+            Vector3 eulerAngles = rotation.ToEulerAngles();
+
+            if (Math.Abs(_pitch + eulerAngles.Y) > 89)
+                eulerAngles.Y = 0;
+            
+            _pitch += eulerAngles.Y;
+
+            base.Rotate(Quaternion.FromEulerAngles(eulerAngles));
         }
     }
 }

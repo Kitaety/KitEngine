@@ -1,10 +1,10 @@
-﻿using KitEngine.GameObjects;
+﻿using KitEngine.Render;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
-namespace KitEngine.Render
+namespace KitEngine.GameObjects
 {
-    public class Voxel : IDisposable
+    public class Voxel: IDisposable
     {
         private static readonly uint[] Indexes = {
             //front
@@ -41,9 +41,7 @@ namespace KitEngine.Render
             0.5f, -0.5f, -0.5f, 1.0f,
             0.5f, 0.5f, -0.5f, 1.0f,
         };
-
         public Transform Transform { get; set; }
-
         public float[] Color { get; set; }
         private readonly ArrayObject _vertexArrayObject;
 
@@ -107,6 +105,5 @@ namespace KitEngine.Render
 
             return vao;
         }
-
     }
 }
