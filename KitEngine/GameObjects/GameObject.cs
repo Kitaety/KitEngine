@@ -5,37 +5,35 @@ using System.Numerics;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
+using KitEngine.Render;
 using OpenTK.Mathematics;
 using Quaternion = OpenTK.Mathematics.Quaternion;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
-namespace KitEngine
+namespace KitEngine.GameObjects
 {
-    public sealed class GameObject:IDisposable
+    public sealed class GameObject : BaseObject, IDisposable
     {
-        public string Name { get; set; }
-        public Transform Transform { get; set; }
         public List<Voxel> Mesh { get; set; }
-        
+
         public GameObject(string name, Transform? parent = null)
-        :this(name, Vector3.Zero, Quaternion.FromEulerAngles(Vector3.Zero), parent)
+        : this(name, Vector3.Zero, Quaternion.FromEulerAngles(Vector3.Zero), parent)
+        { }
+        public GameObject(string name, Vector3 position, Quaternion rotation, Transform? parent = null) 
+            : this(name, new Transform(parent, position, rotation), parent)
         {}
-        public GameObject(string name, Vector3 position, Quaternion rotation, Transform? parent = null)
+
+        public GameObject(string name, Transform transform, Transform? parent = null)
+            : base(name, transform)
         {
-            Name = name;
+            transform.Parent = parent;
             Mesh = new List<Voxel>();
-            Transform = new Transform(parent, position, rotation);
         }
 
-        public void Rotate(Vector3 rotation)
+        public override void Rotate(Quaternion rotation)
         {
-            Rotate(Quaternion.FromEulerAngles(rotation));
-        }
-
-        public void Rotate(Quaternion rotation)
-        {
-            Transform.Rotation *= rotation;
-            Mesh.ForEach(voxel => voxel.Transform.Rotation *= rotation);
+            Transform.Rotate(rotation);
+            Mesh.ForEach(voxel => voxel.Transform.Rotate(rotation));
         }
 
         public void Dispose()

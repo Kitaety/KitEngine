@@ -1,9 +1,9 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 using System.Runtime.InteropServices;
 
-namespace KitEngine
+namespace KitEngine.Render
 {
-    public sealed class BufferObject: IDisposable
+    public sealed class BufferObject : IDisposable
     {
         private const int ErrorCode = -1;
         public int Id { private set; get; }

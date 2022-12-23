@@ -1,14 +1,14 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 
-namespace KitEngine
+namespace KitEngine.Render
 {
-    public class ArrayObject: IDisposable
+    public class ArrayObject : IDisposable
     {
         private const int ErrorCode = -1;
         public int Id { private set; get; }
         public bool IsActive { private set; get; }
         private List<BufferObject> _bufferObjects = new List<BufferObject>();
-        private List<int> _attribs= new List<int>();
+        private List<int> _attribs = new List<int>();
 
         public ArrayObject()
         {

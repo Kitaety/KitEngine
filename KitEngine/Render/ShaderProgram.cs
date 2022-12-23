@@ -1,7 +1,7 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
-namespace KitEngine
+namespace KitEngine.Render
 {
     public class ShaderProgram
     {

@@ -1,9 +1,11 @@
-﻿using System.Collections;
-using OpenTK.Windowing.Common;
+﻿using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
+using KitEngine.GameObjects;
+using KitEngine.Render;
+using KitEngine.Input;
 
 namespace KitEngine
 {
@@ -63,7 +65,7 @@ namespace KitEngine
             };
             obj1.Mesh = voxels1;
 
-            _camera = new Camera(Vector3.Zero, Size);
+            _camera = new Camera("Camera", Vector3.Zero, Size);
         }
 
         protected override void OnUnload()
@@ -128,95 +130,52 @@ namespace KitEngine
 
         private void Update()
         {
-            KeyboardState input = KeyboardState;
+            InputManager.Update();
 
-            if (input.IsKeyDown(Keys.Escape))
+            switch (InputManager.GetKeyDown())
             {
-                Close();
-            }
-            if (input.IsKeyPressed(Keys.F1))
-            {
-                ActivateDebugMode(!_isDebug);
-            }
-            if (input.IsKeyPressed(Keys.F2))
-            {
-                _camera.IsOrthographic = !_camera.IsOrthographic;
-            }
-            //Camera Input
-            const float sensitivity = 0.2f;
-            const float cameraSpeed = 1.5f;
-
-            if (input.IsKeyDown(Keys.W))
-            {
-                _camera.Position += _camera.Front * cameraSpeed * _deltaTime;
-            }
-            if (input.IsKeyDown(Keys.S))
-            {
-                _camera.Position -= _camera.Front * cameraSpeed * _deltaTime;
-            }
-            if (input.IsKeyDown(Keys.A))
-            {
-                _camera.Position -= _camera.Right * cameraSpeed * _deltaTime;
-            }
-            if (input.IsKeyDown(Keys.D))
-            {
-                _camera.Position += _camera.Right * cameraSpeed * _deltaTime;
-            }
-            if (input.IsKeyDown(Keys.Space))
-            {
-                _camera.Position += _camera.Up * cameraSpeed * _deltaTime;
-            }
-            if (input.IsKeyDown(Keys.LeftShift))
-            {
-                _camera.Position -= _camera.Up * cameraSpeed * _deltaTime;
+                case Keys.Escape:
+                    Close();
+                    break;
+                case Keys.F1:
+                    ActivateDebugMode(!_isDebug);
+                    break;
+                case Keys.F2:
+                    _camera.IsOrthographic = !_camera.IsOrthographic;
+                    break;
             }
 
-            var mouse = MouseState;
+            UpdateCamera();
+            UpdateRotationObject();
+        }
 
-            if (_firstMove)
-            {
-                _lastPos = new Vector2(mouse.X, mouse.Y);
-                _firstMove = false;
-            }
-            else
-            {
-                var deltaX = mouse.X - _lastPos.X;
-                var deltaY = mouse.Y - _lastPos.Y;
-                _lastPos = new Vector2(mouse.X, mouse.Y);
-
-                _camera.Yaw += deltaX * sensitivity;
-                _camera.Pitch -= deltaY * sensitivity;
-            }
+        private void UpdateRotationObject()
+        {
 
             var rot = Vector3.Zero;
-            var speedRot = _deltaTime * 50f;
-            if (input.IsKeyDown(Keys.Q))
-            {
-                rot.Y = speedRot;
-            }
-            if (input.IsKeyDown(Keys.E))
-            {
-                rot.Y -= speedRot;
-            }
+            var speedRot = _deltaTime * 5f;
 
-            if (input.IsKeyDown(Keys.R))
+            switch (InputManager.GetKeyDown())
             {
-                rot.X += speedRot;
+                case Keys.Q:
+                    rot.Y = speedRot;
+                    break;
+                case Keys.E:
+                    rot.Y -= speedRot;
+                    break;
+                case Keys.R:
+                    rot.X += speedRot;
+                    break;
+                case Keys.T:
+                    rot.X -= speedRot;
+                    break;
+                case Keys.Y:
+                    rot.Z += speedRot;
+                    break;
+                case Keys.U:
+                    rot.Z -= speedRot;
+                    break;
             }
-            if (input.IsKeyDown(Keys.T))
-            {
-                rot.X -= speedRot;
-            }
-
-            if (input.IsKeyDown(Keys.Y))
-            {
-                rot.Z += speedRot;
-            }
-            if (input.IsKeyDown(Keys.U))
-            {
-                rot.Z -= speedRot;
-            }
-
 
             obj.Rotate(rot);
         }
@@ -232,6 +191,47 @@ namespace KitEngine
             {
                 CursorState = CursorState.Grabbed;
             }
+        }
+
+
+        private void UpdateCamera()
+        {
+            //Camera Input
+            const float sensitivity = 0.05f;
+            const float cameraSpeed = 1.5f;
+
+            Vector3 camPos = _camera.Transform.Position;
+
+            switch (InputManager.GetKeyDown())
+            {
+                case Keys.W:
+                    camPos += _camera.Transform.Front * cameraSpeed * _deltaTime;
+                    break;
+                case Keys.S:
+                    camPos -= _camera.Transform.Front * cameraSpeed * _deltaTime;
+                    break;
+                case Keys.A:
+                    camPos -= _camera.Transform.Right * cameraSpeed * _deltaTime;
+                    break;
+                case Keys.D:
+                    camPos += _camera.Transform.Right * cameraSpeed * _deltaTime;
+                    break;
+                case Keys.Space:
+                    camPos += _camera.Transform.Up * cameraSpeed * _deltaTime;
+                    break;
+                case Keys.LeftShift:
+                    camPos -= _camera.Transform.Up * cameraSpeed * _deltaTime;
+                    break;
+            }
+
+            _camera.Transform.Translate(camPos);
+
+            Vector2 mouse = InputManager.DeltaMousePosition;
+
+            var mouseX = -mouse.X * sensitivity;
+            var mouseY = -mouse.Y * sensitivity;
+
+            _camera.Rotate(new Vector3(mouseY, mouseX, 0));
         }
     }
 }

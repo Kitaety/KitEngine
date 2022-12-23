@@ -1,9 +1,10 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using KitEngine.GameObjects;
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
-namespace KitEngine
+namespace KitEngine.Render
 {
-    public class Voxel:IDisposable
+    public class Voxel : IDisposable
     {
         private static readonly uint[] Indexes = {
             //front
@@ -60,26 +61,17 @@ namespace KitEngine
             _vertexArrayObject.Activate();
             _vertexArrayObject.DrawElements(0, Indexes.Length, DrawElementsType.UnsignedInt);
         }
-        
+
         public void Dispose()
         {
             _vertexArrayObject.Dispose();
         }
 
-        //private Matrix4 GetModelMatrix()
-        //{
-        //    Transform parentTransform = Transform.Parent!;
-
-        //    Matrix4 mat4 = Matrix4.CreateFromQuaternion(parentTransform.Rotation);
-
-        //    return mat4 * Matrix4.CreateTranslation(parentTransform.Position + Vector3.TransformPosition(Transform.Position, mat4));
-        //}
-
         private float[] GetArrayVertexColor()
         {
             List<float> result = new List<float>();
 
-            for (int i = 0; i < Vertexes.Length; i+=4)
+            for (int i = 0; i < Vertexes.Length; i += 4)
             {
                 result.Add(Vertexes[i]);
                 result.Add(Vertexes[i + 1]);
